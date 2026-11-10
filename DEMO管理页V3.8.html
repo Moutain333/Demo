@@ -1,0 +1,1406 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEMO 管理页 V3.8（审批入口收敛·导航层级）</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:#f0f2f5;color:#1f2937;font-size:13px}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:210px;background:#1a1a2e;color:#cbd5e1;flex-shrink:0;position:fixed;top:0;bottom:0;left:0;overflow-y:auto;z-index:20}
+.sidebar .logo{padding:18px 16px;font-size:15px;font-weight:700;color:#fff;border-bottom:1px solid #2b2b45}
+.sidebar .logo small{display:block;font-size:11px;color:#8b8ba7;font-weight:400;margin-top:4px}
+.nav-group{padding:10px 0}
+.nav-group .grp{padding:6px 16px;font-size:11px;color:#6b6b8f;letter-spacing:1px}
+.nav-item{padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;border-left:3px solid transparent;font-size:13px}
+.nav-item:hover{background:#23233c;color:#fff}
+.nav-item.active{background:#2563eb22;border-left-color:#2563eb;color:#fff}
+.nav-item .dot{width:6px;height:6px;border-radius:50%;background:#2563eb;flex-shrink:0}
+.nav-item .badge{margin-left:auto;background:#dc2626;color:#fff;border-radius:9px;font-size:10px;padding:1px 6px}
+.main{margin-left:210px;flex:1;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 20px;height:52px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10}
+.topbar h1{font-size:16px;font-weight:700}
+.topbar .crumb{color:#6b7280;font-size:12px}
+.topbar .spacer{flex:1}
+.user-chip{display:flex;align-items:center;gap:6px;font-size:12px;color:#6b7280}
+.avatar{width:26px;height:26px;border-radius:50%;background:#2563eb;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+.content{padding:16px 20px 40px}
+.page-view{display:none}.page-view.active{display:block}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.card h3{font-size:14px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h3 .sub{font-size:11px;color:#6b7280;font-weight:400}
+.info-box{border-left:4px solid;border-radius:6px;padding:9px 12px;margin-bottom:12px;font-size:12px;line-height:1.7}
+.info-box.blue{border-color:#2563eb;background:#eff6ff}
+.info-box.green{border-color:#059669;background:#ecfdf5}
+.info-box.orange{border-color:#d97706;background:#fffbeb}
+.info-box.purple{border-color:#7c3aed;background:#f5f3ff}
+.info-box.red{border-color:#dc2626;background:#fef2f2}
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.filter-bar label{font-size:12px;color:#6b7280}
+.filter-bar input,.filter-bar select{padding:6px 8px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;background:#fff;min-width:110px}
+.btn{padding:6px 14px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-size:12px}
+.btn:hover{border-color:#2563eb;color:#2563eb}
+.btn.primary{background:#2563eb;border-color:#2563eb;color:#fff}
+.btn.green{background:#059669;border-color:#059669;color:#fff}
+.btn.warn{background:#d97706;border-color:#d97706;color:#fff}
+.btn.danger{background:#dc2626;border-color:#dc2626;color:#fff}
+.btn.sm{padding:3px 9px;font-size:11px}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.stat-card{background:#fff;border:1px solid #e5e7eb;border-top:3px solid #2563eb;border-radius:8px;padding:10px 12px;cursor:pointer}
+.stat-card .lb{font-size:11px;color:#6b7280}
+.stat-card .vl{font-size:20px;font-weight:700;margin-top:2px}
+.stat-card .dl{font-size:11px;margin-top:2px;color:#6b7280}
+.stat-card.blue{border-top-color:#2563eb}.stat-card.blue .vl{color:#2563eb}
+.stat-card.green{border-top-color:#059669}.stat-card.green .vl{color:#059669}
+.stat-card.orange{border-top-color:#d97706}.stat-card.orange .vl{color:#d97706}
+.stat-card.purple{border-top-color:#7c3aed}.stat-card.purple .vl{color:#7c3aed}
+.stat-card.cyan{border-top-color:#0891b2}.stat-card.cyan .vl{color:#0891b2}
+.stat-card.gray{border-top-color:#9ca3af}.stat-card.gray .vl{color:#6b7280}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;margin-right:4px}
+.tag-blue{background:#eff6ff;color:#2563eb}.tag-green{background:#ecfdf5;color:#059669}
+.tag-purple{background:#f5f3ff;color:#7c3aed}.tag-cyan{background:#ecfeff;color:#0891b2}
+.tag-orange{background:#fffbeb;color:#d97706}.tag-gray{background:#f3f4f6;color:#6b7280}
+.tag-pink{background:#fdf2f8;color:#db2777}
+.status{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:10px;font-size:11px}
+.status::before{content:"";width:6px;height:6px;border-radius:50%}
+.status-active{background:#ecfdf5;color:#059669}.status-active::before{background:#059669}
+.status-pending{background:#eff6ff;color:#2563eb}.status-pending::before{background:#2563eb}
+.status-warn{background:#fffbeb;color:#d97706}.status-warn::before{background:#d97706}
+.status-done{background:#f3f4f6;color:#6b7280}.status-done::before{background:#9ca3af}
+.status-off{background:#fef2f2;color:#dc2626}.status-off::before{background:#dc2626}
+.status-purple{background:#f5f3ff;color:#7c3aed}.status-purple::before{background:#7c3aed}
+.scroll-x{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:860px}
+table.tbl th{background:#f9fafb;color:#6b7280;font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+table.tbl td{padding:8px 10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;vertical-align:top}
+table.tbl tr:hover td{background:#f8fafc}
+.link{color:#2563eb;cursor:pointer}
+.link:hover{text-decoration:underline}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #e5e7eb;margin-bottom:12px;flex-wrap:wrap}
+.tab{padding:7px 14px;cursor:pointer;font-size:12px;color:#6b7280;border-bottom:2px solid transparent}
+.tab.active{color:#2563eb;border-bottom-color:#2563eb;font-weight:700}
+.drawer-mask{position:fixed;inset:0;background:#0006;display:none;z-index:40}
+.drawer{position:fixed;top:0;right:-620px;width:620px;max-width:96vw;height:100vh;background:#fff;z-index:41;box-shadow:-4px 0 20px #0002;transition:right .25s;overflow-y:auto;padding:18px 20px}
+.drawer.open{right:0}
+.drawer h3{font-size:15px;margin-bottom:10px}
+.drawer .close{float:right;cursor:pointer;color:#6b7280;font-size:18px}
+.modal-mask{position:fixed;inset:0;background:#0007;display:none;align-items:flex-start;justify-content:center;z-index:50;overflow-y:auto;padding:40px 12px}
+.modal-mask.open{display:flex}
+.modal{background:#fff;border-radius:10px;width:640px;max-width:96vw;padding:18px 20px}
+.modal h3{font-size:15px;margin-bottom:12px}
+.form-row{display:flex;gap:10px;margin-bottom:10px;align-items:center}
+.form-row label{width:110px;font-size:12px;color:#6b7280;flex-shrink:0}
+.form-row input,.form-row select,.form-row textarea{flex:1;padding:7px 9px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+fieldset.grp{border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;margin-bottom:12px}
+fieldset.grp legend{font-size:12px;color:#2563eb;font-weight:700;padding:0 6px}
+.pick-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:6px;cursor:pointer}
+.pick-row:hover{border-color:#2563eb}
+.pick-row.sel{border-color:#2563eb;background:#eff6ff}
+.check-line{display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:6px}
+.check-line .ok{color:#059669}.check-line .no{color:#dc2626}
+.muted{color:#6b7280}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}
+.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.right{margin-left:auto}
+.steps9{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.step9{padding:4px 10px;border-radius:14px;background:#fff;border:1px solid #e5e7eb;font-size:11px;color:#6b7280}
+.step9.on{background:#2563eb;border-color:#2563eb;color:#fff}
+.step9.done{background:#ecfdf5;border-color:#059669;color:#059669}
+.toast{position:fixed;top:64px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:9px 18px;border-radius:8px;font-size:12px;z-index:60;display:none;box-shadow:0 4px 14px #0004;max-width:80vw}
+.toast.ok{background:#059669}.toast.err{background:#dc2626}.toast.warn{background:#d97706}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">乐忆版权服务平台<small>DEMO 管理 · V3.8 非成品管理</small></div>
+    <div class="nav-group">
+      <div class="grp">非成品管理</div>
+      <div class="nav-item" data-page="req"><span class="dot"></span>采购申请</div>
+      <div class="nav-item active" data-page="content"><span class="dot"></span>创作内容</div>
+      <div class="nav-item" data-page="apr"><span class="dot"></span>审批中心<span class="badge" id="aprBadge">0</span></div>
+      <div class="nav-item" data-page="tpl"><span class="dot"></span>合约模版库</div>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1 id="pageTitle">采购申请</h1>
+      <span class="crumb" id="pageCrumb">DEMO 管理 / 步骤①②</span>
+      <div class="spacer"></div>
+      <div class="user-chip"><div class="avatar">王</div><span>王小辉（业务）· 可切换审批视角见审批中心</span></div>
+    </header>
+    <div class="content">
+      <div class="steps9" id="steps9"></div>
+
+      <!-- 流程工作台（操作轨） -->
+      <div class="page-view" id="page-wb">
+        <div class="info-box blue"><b>办理 · 流程工作台（R38 链接页）</b>：由档案行/详情「办理」链接进入，不驻留主导航；案件化（R34）+视角隔离（R35）+流程轨顶置步骤导航（R36）；办理完成自动推进（R32）。</div>
+        <div class="flex mb8"><button class="btn" onclick="backFromWb()">← 返回档案</button>
+          <label style="font-size:12px;color:#6b7280">当前视角</label><select id="wbOwner" onchange="setWbOwner(this.value)"></select>
+          <span class="muted" style="font-size:12px">本页为「办理」链接页（R38）：案件负责人=立项负责人（R35）；创建入口在采购申请档案右上角（R37）</span></div>
+        <div class="card"><h3>流程轨 · 步骤导航 <span class="sub">徽标=当前视角下该步骤案件数 · 点击节点切换步骤操作页</span></h3>
+          <div class="steps9" id="wbRailNav" style="margin-bottom:0"></div></div>
+        <div id="wbStepBody"></div>
+      </div>
+
+      <!-- 采购申请 -->
+      <div class="page-view active" id="page-req">
+        <div class="info-box orange">查看轨 · 档案只读（R33）：案件办理入口为行级<b>「办理」</b>链接（进入流程工作台链接页 R38）；唯一创建入口为右上角「＋ 新采购申请」（R37 创建入口例外）。</div>
+        <div class="filter-bar">
+          <label>申请</label><input id="rKw" placeholder="申请单号/名称">
+          <label>状态</label><select id="rStatus"><option value="">全部</option><option value="draft">草稿</option><option value="pending_approval">待审批</option><option value="approved_pending_contract">已批准·待合约录入</option><option value="completed">已完成</option></select>
+          <label>负责人</label><select id="rOwner"><option value="">全部</option><option>王小辉</option><option>张丽君</option><option>郭媛</option></select>
+          <label>作品类型</label><select id="rType"><option value="">全部</option><option>词曲</option><option>词</option><option>曲</option></select>
+          <button class="btn primary" onclick="renderReq()">查询</button>
+          <button class="btn" onclick="resetReq()">重置</button>
+        </div>
+        <div class="stat-row" id="reqCards"></div>
+        <div class="card">
+          <h3>采购申请单 <span class="sub">只读 · 行「办理」进入工作台</span><span class="right"><button class="btn primary" onclick="openReqDrawer()">＋ 新采购申请（步骤① · 创建入口 R37）</button></span></h3>
+          <div class="scroll-x"><table class="tbl" id="reqTable"></table></div>
+        </div>
+      </div>
+
+      <!-- 审批中心 -->
+      <div class="page-view" id="page-apr">
+        <div class="info-box purple">单页审批台账（R39）：采购/表演者/制作(合并)三类闸口整合为一页，类型以下拉切换；三类台账行均仅单一「审批」主 CTA（R47），通过/驳回结论与意见在审批弹窗/工作台内完成（表演者批量范围为弹窗内单选）；审批历史经状态筛选查看。</div>
+        <div class="filter-bar">
+          <label>审批类型</label><select id="aprType" onchange="renderApr()"><option value="all">全部</option><option value="purchase">采购审批</option><option value="performer">表演者审批</option><option value="production">制作·合并审批</option></select>
+          <label>状态</label><select id="aprStatus" onchange="renderApr()"><option value="pending">待审批</option><option value="approved">已通过</option><option value="rejected">已驳回</option><option value="all">全部</option></select>
+          <label>关键词</label><input id="aprKw" placeholder="单据号/对象">
+          <button class="btn primary" onclick="renderApr()">查询</button>
+          <button class="btn" onclick="resetApr()">重置</button>
+        </div>
+        <div class="card"><h3>审批台账 <span class="sub">单页多类型 · 动作列按类型变化 · 历史经状态筛选</span></h3>
+          <div class="scroll-x"><table class="tbl" id="aprTable"></table></div></div>
+      </div>
+
+      <!-- 创作内容 -->
+      <div class="page-view" id="page-content">
+        <div id="contentListView">
+          <div class="info-box green">步骤④系统自动创建的内容主体（词曲库作品 + DEMO 主轨）。主轨三态：待表演者 → 待制作 → 完结（N/M 角标，主状态不回退）；派生链：表演者申请（步骤⑤）→ 制作申请=成品单（步骤⑦）→ 成品（步骤⑨）。<b>V3.1：一份词曲交叉派生多成品 = 表演者 × 制作公司（×版本）</b>；表演者合约按人复用（换公司不重审 R21），制作合约按成品单录入（同公司快照预填 R23）。<b>V3.2 双执行模式</b>：顺序（表演者合约→制作合约、两道审批）/ <b>合并（演唱+制作一个步骤、一份合并合约、一道审批，⑤′→⑥′→⑨，R25~R29）</b>。<b>V3.3：本页为查看轨档案（只读）</b>，全部操作入口统一在流程工作台，档案顶部提供"当前步骤+办理"。</div>
+          <div class="filter-bar">
+            <label>内容</label><input id="cKw" placeholder="内容ID/名称">
+            <label>主状态</label><select id="cStatus"><option value="">全部</option><option value="pending_performer">待表演者</option><option value="pending_production">待制作</option><option value="completed">完结</option></select>
+            <label>立项负责人</label><select id="cOwner"><option value="">全部</option><option>王小辉</option><option>张丽君</option><option>郭媛</option></select>
+            <label>项目分类</label><select id="cCat"><option value="">全部</option><option>内按</option><option>外按</option></select>
+            <button class="btn primary" onclick="renderContent()">查询</button>
+            <button class="btn" onclick="resetContent()">重置</button>
+          </div>
+          <div class="stat-row" id="contentCards"></div>
+          <div class="card">
+            <h3>创作内容列表</h3>
+            <div class="scroll-x"><table class="tbl" id="contentTable"></table></div>
+          </div>
+        </div>
+        <div id="contentDetailView" style="display:none">
+          <div class="flex mb8"><button class="btn" onclick="backContentList()">← 返回列表</button>
+            <span id="cdTitle" style="font-weight:700;font-size:14px"></span><span id="cdStatus"></span>
+            <span class="right"><span class="muted" id="cdQuota"></span> <button class="btn warn sm" id="cdGoBtn">办理</button></span></div>
+          <div class="tabs" id="cdTabs"></div>
+          <div id="cdBody"></div>
+        </div>
+      </div>
+
+      <!-- 合约模版库 -->
+      <div class="page-view" id="page-tpl">
+        <div class="info-box orange">合约模版 = 固定条款 + 空位字段。空位字段（docx 中【】空位）即系统录入项，录入表单由 schema 动态渲染；固定条款不可业务修改。模版升级不影响历史合约实例（实例保存录入快照，R18/R19）。</div>
+        <div class="tabs" id="tplTabs">
+          <div class="tab active" data-t="creation" onclick="setTplTab('creation')">委托创作合同（词/曲/词&曲）</div>
+          <div class="tab" data-t="performance" onclick="setTplTab('performance')">委托演唱合同（表演者）</div>
+          <div class="tab" data-t="production" onclick="setTplTab('production')">委托制作合同（后期制作）</div>
+          <div class="tab" data-t="combo" onclick="setTplTab('combo')">委托演唱-制作合同（合并模版·V3.2）</div>
+        </div>
+        <div id="tplVariant" class="flex mb8"></div>
+        <div id="tplBody"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新建采购申请抽屉 -->
+<div class="drawer-mask" id="reqMask" onclick="closeReqDrawer()"></div>
+<div class="drawer" id="reqDrawer">
+  <span class="close" onclick="closeReqDrawer()">×</span>
+  <h3>发起采购申请（步骤①）</h3>
+  <div class="form-row"><label>作品名称 *</label><input id="rqName" placeholder="≤100字符"></div>
+  <div class="form-row"><label>作品类型 *</label><select id="rqType"><option>词曲</option><option>词</option><option>曲</option></select></div>
+  <div class="form-row"><label>计划采购词</label><select id="rqLyric"><option value="1">是</option><option value="0">否</option></select></div>
+  <div class="form-row"><label>计划采购曲</label><select id="rqComp"><option value="1">是</option><option value="0">否</option></select></div>
+  <div class="form-row"><label>采购金额 *</label><input id="rqAmount" type="number" placeholder="元" oninput="rqHint()"></div>
+  <div class="form-row"><label>项目名称 *</label><input id="rqProject"></div>
+  <div class="form-row"><label>项目分类 *</label><select id="rqCat"><option>内按</option><option>外按</option></select></div>
+  <div class="form-row"><label>立项负责人 *</label><select id="rqOwner"><option>王小辉</option><option>张丽君</option><option>郭媛</option></select></div>
+  <div class="form-row"><label>申请说明</label><textarea id="rqRemark" rows="2"></textarea></div>
+  <div class="info-box blue" id="rqHintBox" style="display:none"></div>
+  <div class="flex" style="justify-content:flex-end"><button class="btn" onclick="closeReqDrawer()">取消</button>
+    <button class="btn primary" onclick="submitReq()">提交（进入步骤②审批）</button></div>
+</div>
+
+<!-- 通用弹窗 -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <div id="modalBody"></div>
+    <div class="flex right" style="justify-content:flex-end;margin-top:14px" id="modalFoot"></div>
+  </div>
+</div>
+<div class="toast" id="toastEl"></div>
+
+<script>
+/* ============ 模拟数据 ============ */
+var SEQ = 100;
+function nid(p){ SEQ++; return p + SEQ; }
+var REQS = [
+  {id:'PR-2026-0001', name:'晚风', type:'词曲', lyric:1, comp:1, amount:80000, project:'晚风单曲项目', cat:'内按', owner:'王小辉', status:'approved_pending_contract', remark:''},
+  {id:'PR-2026-0002', name:'山风', type:'曲', lyric:0, comp:1, amount:35000, project:'山风EP', cat:'外按', owner:'张丽君', status:'pending_approval', remark:''},
+  {id:'PR-2026-0003', name:'霓虹', type:'词', lyric:1, comp:0, amount:12000, project:'霓虹单曲', cat:'内按', owner:'郭媛', status:'draft', remark:''},
+  {id:'PR-2026-0004', name:'旧巷', type:'词曲', lyric:1, comp:1, amount:66000, project:'旧巷夏天项目', cat:'内按', owner:'王小辉', status:'completed', remark:''},
+  {id:'PR-2026-0006', name:'山风', type:'曲', lyric:0, comp:1, amount:35000, project:'山风EP', cat:'外按', owner:'张丽君', status:'completed', remark:''}
+];
+var CONTENTS = [
+  {id:'DEMO-2026-0001', req:'PR-2026-0004', name:'旧巷夏天', type:'词曲', lyricist:'沈栖', composer:'沈栖', contract:'CTR-C-2026-011', project:'旧巷夏天项目', cat:'内按', owner:'王小辉'},
+  {id:'DEMO-2026-0002', req:'PR-2026-0005', name:'夜航星', type:'词曲', lyricist:'林小满', composer:'陈屿', contract:'CTR-C-2026-008', project:'夜航星项目', cat:'外按', owner:'张丽君'},
+  {id:'DEMO-2026-0003', req:'PR-2026-0006', name:'山风', type:'曲', lyricist:'—', composer:'陈屿', contract:'CTR-C-2026-014', project:'山风EP', cat:'外按', owner:'张丽君'}
+];
+var PERF = [
+  {id:'DEMO-2026-0002-F01', demo:'DEMO-2026-0002', batch:'B-2026-11', artist:'张三', partyB:'星声经纪', royaltyYears:3, ratioA:70, ratioB:30, contract:'CTR-P-2026-021', status:'approved'},
+  {id:'DEMO-2026-0002-F02', demo:'DEMO-2026-0002', batch:'B-2026-11', artist:'李四', partyB:'星声经纪', royaltyYears:3, ratioA:70, ratioB:30, contract:'CTR-P-2026-022', status:'approved'}
+];
+var PROD = [
+  {id:'DEMO-2026-0002-P01', demo:'DEMO-2026-0002', perf:'DEMO-2026-0002-F01', artist:'张三', company:'XX音乐制作有限公司', producer:'李制作人', album:'夜航星单曲', version:'原版', fee:20000, main:1, acc:1, spec:'44.1K 16bit', contract:'CTR-M-2026-031', status:'pending_approval', mats:{audio:1, lyric:1}},
+  {id:'DEMO-2026-0002-P02', demo:'DEMO-2026-0002', perf:'DEMO-2026-0002-F02', artist:'李四', company:'YY传媒', producer:'王制作人', album:'夜航星单曲', version:'粤语', fee:18000, main:1, acc:0, spec:'48K 24bit', contract:'CTR-M-2026-032', status:'synced', song:'S-2026-0101', mats:{audio:1, lyric:1}},
+  {id:'DEMO-2026-0002-P03', demo:'DEMO-2026-0002', perf:'DEMO-2026-0002-F02', artist:'李四', company:'XX音乐制作有限公司', producer:'李制作人', album:'夜航星单曲', version:'粤语', fee:19000, main:1, acc:0, spec:'44.1K 16bit', process:'编曲、配器、录音、修音、混音、母带合成', contract:'CTR-M-2026-033', status:'produced', mats:{audio:1, lyric:1}},
+  {id:'DEMO-2026-0003-P01', demo:'DEMO-2026-0003', perf:null, mode:'combo', artist:'王五', company:'YY传媒', producer:'王制作人', album:'山风EP', version:'原版', fee:30000, main:1, acc:1, spec:'48K 24bit', process:'编曲、配器、录音、修音、混音、母带合成', contract:'CTR-CP-2026-001', status:'pending_approval', mats:{audio:1, lyric:1}}
+];
+var LOGS = [];
+var APPROVALS = [
+  {id:'AP-001', biz:'purchase', bizId:'PR-2026-0004', result:'approved', by:'负责人·周总', at:'2026-11-01 10:00', comment:'同意采购'},
+  {id:'AP-002', biz:'performer', bizId:'B-2026-11', result:'approved', by:'负责人·周总', at:'2026-11-03 15:20', comment:'批量通过2单'}
+];
+var COMPANIES = {
+  'XX音乐制作有限公司': ['李制作人','赵制作人'],
+  'YY传媒': ['王制作人','孙制作人']
+};
+var ARTISTS = ['张三','李四','王五','赵六'];
+var ALBUMS = ['夜航星单曲','粤语精选','旧巷夏天EP'];
+var CURRENT_CONTENT = null;
+var CD_TAB = 'base';
+var APR_TAB = 'purchase';
+var TPL_TAB = 'creation';
+var TPL_VARIANT = '词曲';
+
+/* ============ 工具 ============ */
+function $(id){ return document.getElementById(id); }
+function fmt(n){ return (n||0).toLocaleString('zh-CN'); }
+function toast(msg, type){ var t=$('toastEl'); t.textContent=msg; t.className='toast '+(type||''); t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(function(){t.style.display='none';},2800); }
+function log(action, remark){ LOGS.unshift([new Date().toLocaleString('zh-CN'), action, remark]); }
+var REQ_STATUS = {draft:['草稿','status-done'], pending_approval:['待审批','status-pending'], approved_pending_contract:['已批准·待合约录入','status-warn'], completed:['已完成','status-active'], terminated:['已终止','status-off']};
+var PERF_STATUS = {draft:['草稿','status-done'], pending_approval:['待审批','status-pending'], approved:['已批准','status-active'], terminated:['已终止','status-off']};
+var PROD_STATUS = {draft:['草稿','status-done'], pending_approval:['待审批','status-pending'], produced:['已形成·待同步','status-warn'], synced:['已同步成品库','status-active'], online:['已上线','status-purple'], offline:['已下架','status-off'], terminated:['已终止','status-off']};
+function badge(map, s){ var m=map[s]||['?','status-done']; return '<span class="status '+m[1]+'">'+m[0]+'</span>'; }
+function contentStatus(c){
+  var perfs = PERF.filter(function(p){return p.demo===c.id;});
+  var prods = PROD.filter(function(p){return p.demo===c.id;});
+  var produced = prods.filter(function(p){return p.status==='produced'||p.status==='synced'||p.status==='online'||p.status==='offline';});
+  if(produced.length) return 'completed';
+  var appr = perfs.filter(function(p){return p.status==='approved';});
+  var comboActive = prods.some(function(p){return p.mode==='combo'&&p.status!=='terminated';});
+  if(appr.length||comboActive) return 'pending_production';
+  return 'pending_performer';
+}
+var C_STATUS = {pending_performer:['待表演者','status-pending'], pending_production:['待制作','status-warn'], completed:['完结','status-active'], terminated:['已终止','status-off']};
+function contentBadge(c){
+  var st = contentStatus(c);
+  var prods = PROD.filter(function(p){return p.demo===c.id && p.status!=='terminated';});
+  var produced = prods.filter(function(p){return p.status==='produced'||p.status==='synced'||p.status==='online'||p.status==='offline';});
+  var m = C_STATUS[st];
+  var extra = (st==='pending_production'||st==='completed') ? ' '+produced.length+'/'+prods.length : '';
+  return '<span class="status '+m[1]+'">'+m[0]+extra+'</span>';
+}
+function pendingCount(){
+  return REQS.filter(function(r){return r.status==='pending_approval';}).length
+    + PERF.filter(function(p){return p.status==='pending_approval';}).length
+    + PROD.filter(function(p){return p.status==='pending_approval';}).length;
+}
+function refreshBadge(){ var n=pendingCount(); var b=$('aprBadge'); b.textContent=n; b.style.display=n?'inline-block':'none'; }
+
+/* ============ 导航 ============ */
+var PAGE_META = {
+  wb:['办理 · 流程工作台','非成品管理 / 链接页（R38）'],
+  req:['采购申请','非成品管理 / 只读档案+办理'],
+  apr:['审批中心','非成品管理 / 步骤②⑥⑥′⑧'],
+  content:['创作内容','非成品管理 / 只读档案+办理'],
+  tpl:['合约模版库','非成品管理 / 步骤③⑤⑦ 模版']
+};
+function showPage(p){
+  var vs=document.querySelectorAll('.page-view');
+  for(var i=0;i<vs.length;i++){ vs[i].classList.remove('active'); }
+  $('page-'+p).classList.add('active');
+  var ns=document.querySelectorAll('.nav-item');
+  for(var j=0;j<ns.length;j++){ ns[j].classList.toggle('active', ns[j].getAttribute('data-page')===p); }
+  $('pageTitle').textContent=PAGE_META[p][0]; $('pageCrumb').textContent=PAGE_META[p][1];
+  if(p==='wb') renderWorkbench();
+  if(p==='req') renderReq();
+  if(p==='apr') renderApr();
+  if(p==='content'){ backContentList(); renderContent(); }
+  if(p==='tpl') renderTpl();
+  renderSteps9(p);
+}
+var ns=document.querySelectorAll('.nav-item');
+for(var ni=0; ni<ns.length; ni++){ (function(n){ n.addEventListener('click', function(){ showPage(n.getAttribute('data-page')); }); })(ns[ni]); }
+function renderSteps9(p){
+  var map={wb:[1,2,3,4,5,6,7,8,9], req:[1,2], apr:[2,6,8], content:[4,5,7,9], tpl:[3,5,7]};
+  var on=map[p]||[];
+  var html='';
+  for(var i=1;i<=9;i++){
+    var cls = on.indexOf(i)>=0 ? 'step9 on' : 'step9';
+    html += '<span class="'+cls+'">'+i+'</span>';
+  }
+  $('steps9').innerHTML = html + '<span class="muted" style="font-size:11px;align-self:center">九步主链：①采购申请 ②采购审批 ③创作合约录入 ④自动创建内容 ⑤表演者申请 ⑥表演者审批 ⑦制作申请 ⑧制作审批 ⑨形成成品</span>';
+}
+
+/* ============ 采购申请 ============ */
+function reqFiltered(){
+  var kw=($('rKw')?$('rKw').value:'').trim().toLowerCase();
+  var st=$('rStatus')?$('rStatus').value:'';
+  var ow=$('rOwner')?$('rOwner').value:'';
+  var tp=$('rType')?$('rType').value:'';
+  return REQS.filter(function(r){
+    if(kw && (r.id+r.name).toLowerCase().indexOf(kw)<0) return false;
+    if(st && r.status!==st) return false;
+    if(ow && r.owner!==ow) return false;
+    if(tp && r.type!==tp) return false;
+    return true;
+  });
+}
+function resetReq(){ if($('rKw'))$('rKw').value=''; if($('rStatus'))$('rStatus').value=''; if($('rOwner'))$('rOwner').value=''; if($('rType'))$('rType').value=''; renderReq(); }
+function renderReq(){
+  var list=reqFiltered();
+  var cnt={draft:0,pending_approval:0,approved_pending_contract:0,completed:0};
+  list.forEach(function(r){ if(cnt[r.status]!==undefined) cnt[r.status]++; });
+  $('reqCards').innerHTML =
+    '<div class="stat-card gray"><div class="lb">草稿</div><div class="vl">'+cnt.draft+'</div></div>'+
+    '<div class="stat-card blue"><div class="lb">待审批（步骤②）</div><div class="vl">'+cnt.pending_approval+'</div></div>'+
+    '<div class="stat-card orange"><div class="lb">已批准·待合约录入（步骤③）</div><div class="vl">'+cnt.approved_pending_contract+'</div></div>'+
+    '<div class="stat-card green"><div class="lb">已完成（内容已创建）</div><div class="vl">'+cnt.completed+'</div></div>';
+  var rows='';
+  list.forEach(function(r){
+    var ops='<span class="link" onclick="gotoWorkbenchReq(\''+r.id+'\')">办理</span>';
+    rows += '<tr><td>'+r.id+'</td><td><b>'+r.name+'</b></td><td><span class="tag tag-blue">'+r.type+'</span></td>'+
+      '<td>'+(r.lyric?'词':'—')+' / '+(r.comp?'曲':'—')+'</td><td>¥ '+fmt(r.amount)+'</td>'+
+      '<td>'+r.project+'<br><span class="tag tag-gray">'+r.cat+'</span><span class="tag tag-purple">'+r.owner+'</span></td>'+
+      '<td>'+badge(REQ_STATUS, r.status)+'</td><td>'+ops+'</td></tr>';
+  });
+  $('reqTable').innerHTML = '<tr><th>申请单号</th><th>作品名称</th><th>作品类型</th><th>计划采购</th><th>采购金额</th><th>立项信息</th><th>状态</th><th>操作</th></tr>'+rows;
+  refreshBadge();
+}
+function openReqDrawer(){ $('reqDrawer').classList.add('open'); $('reqMask').style.display='block'; }
+function closeReqDrawer(){ $('reqDrawer').classList.remove('open'); $('reqMask').style.display='none'; }
+function rqHint(){
+  var v=parseFloat($('rqAmount').value||0);
+  var box=$('rqHintBox');
+  if(v>0){ box.style.display='block'; box.innerHTML='📊 同类参考：近90天同类型采购均价 ¥62,000；本年度采购预算已用 68%。提交后进入<b>步骤②负责人审批</b>（1109 必审）。'; }
+  else box.style.display='none';
+}
+function submitReq(){
+  var name=$('rqName').value.trim();
+  if(!name){ toast('作品名称必填','err'); return; }
+  var amt=parseFloat($('rqAmount').value||0);
+  if(amt<=0){ toast('采购金额必须大于0','err'); return; }
+  var t=$('rqType').value;
+  var r={id:nid('PR-2026-'), name:name, type:t, lyric:t==='词曲'||t==='词'?1:0, comp:t==='词曲'||t==='曲'?1:0,
+    amount:amt, project:$('rqProject').value||name+'项目', cat:$('rqCat').value, owner:$('rqOwner').value, status:'pending_approval', remark:$('rqRemark').value};
+  REQS.unshift(r);
+  log('采购申请提交', r.id+' '+name);
+  closeReqDrawer();
+  toast('采购申请已提交，进入步骤②负责人审批','ok');
+  renderReq();
+}
+function submitReqById(id){
+  var r=REQS.filter(function(x){return x.id===id;})[0];
+  r.status='pending_approval'; log('采购申请提交', id);
+  toast(id+' 已提交审批','ok'); renderReq();
+}
+function withdrawReq(id){
+  var r=REQS.filter(function(x){return x.id===id;})[0];
+  r.status='draft'; log('采购申请撤回', id);
+  toast(id+' 已撤回至草稿','warn'); renderReq();
+}
+function terminateReq(id){
+  var reason=prompt('终止原因（必填）：');
+  if(!reason) return;
+  var r=REQS.filter(function(x){return x.id===id;})[0];
+  r.status='terminated'; log('采购申请终止', id+' '+reason);
+  toast(id+' 已终止','warn'); renderReq();
+}
+function gotoContentByReq(reqId){
+  var c=CONTENTS.filter(function(x){return x.req===reqId;})[0];
+  if(!c){ toast('未找到关联内容','err'); return; }
+  showPage('content'); openContent(c.id);
+}
+
+/* ============ 步骤③ 创作合约录入 ============ */
+function openCreationContract(reqId){
+  var r=REQS.filter(function(x){return x.id===reqId;})[0];
+  var body =
+    '<div class="info-box blue">模版：<b>委托创作合同</b>（3、词曲-（创作合同）.docx）· 变体按作品类型推荐，可切换。提交后触发<b>步骤④系统自动创建内容</b>。</div>'+
+    '<div class="form-row"><label>模版变体 *</label><select id="ccVariant" onchange="ccVariantHint()"><option '+(r.type==='词'?'selected':'')+'>词</option><option '+(r.type==='曲'?'selected':'')+'>曲</option><option '+(r.type==='词曲'?'selected':'')+'>词&曲</option></select></div>'+
+    '<div class="info-box orange" id="ccVariantHint" style="margin-bottom:10px"></div>'+
+    '<fieldset class="grp"><legend>乙方（创作方）</legend>'+
+    '<div class="form-row"><label>乙方名称 *</label><input id="ccB" value="墨白创作工作室"></div>'+
+    '<div class="form-row"><label>信用代码 *</label><input id="ccBCode" value="91440101MA5D4QB7XX"></div>'+
+    '<div class="form-row"><label>联系人/电话 *</label><input id="ccBContact" value="墨白 / 13800000000"></div></fieldset>'+
+    '<fieldset class="grp"><legend>作品与委托事项</legend>'+
+    '<div class="form-row"><label>作品名称 *</label><input id="ccName" value="'+r.name+'"></div>'+
+    '<div class="form-row"><label>词作者(本名+证件) *</label><input id="ccLyricist" placeholder="类型含词时必填"></div>'+
+    '<div class="form-row"><label>曲作者(本名+证件) *</label><input id="ccComposer" placeholder="类型含曲时必填"></div>'+
+    '<div class="form-row"><label>词/曲版权比例</label><input id="ccRatio" value="100% / 100%"></div>'+
+    '<div class="form-row"><label>合作期间 *</label><input id="ccPeriod" value="2026-11-10 ~ 2026-12-31"></div>'+
+    '<div class="form-row"><label>创作完成时间 *</label><input id="ccDone" type="date" value="2026-12-20"></div></fieldset>'+
+    '<fieldset class="grp"><legend>费用与收款</legend>'+
+    '<div class="form-grid"><div class="form-row"><label>含税总价 *</label><input id="ccTotal" type="number" value="'+r.amount+'" oninput="ccCalc()"></div>'+
+    '<div class="form-row"><label>税率% *</label><input id="ccTaxRate" type="number" value="6" oninput="ccCalc()"></div>'+
+    '<div class="form-row"><label>不含税金额</label><input id="ccNet" disabled></div>'+
+    '<div class="form-row"><label>增值税额</label><input id="ccTax" disabled></div>'+
+    '<div class="form-row"><label>预付款比例% *</label><input id="ccPreRatio" type="number" value="30" oninput="ccCalc()"></div>'+
+    '<div class="form-row"><label>预付款金额</label><input id="ccPreAmt" disabled></div></div>'+
+    '<div class="form-row"><label>户名/开户行/账号 *</label><input id="ccBank" value="墨白创作工作室 / 招商银行 / 6225****"></div></fieldset>'+
+    '<fieldset class="grp"><legend>固定条款（系统内置·不可修改）</legend>'+
+    '<div class="muted" style="font-size:12px;line-height:1.8">· 著作权（署名权除外）自词曲作品产生之日起全球永久单独归甲方所有<br>· 权利范围：全球；权利期限：永久<br>· 乙方不得自行或授权第三方使用/转让/许可标的作品<br>· 附件：《词曲作者确认书》、标的音乐作品明细表、《歌曲交接验收单》（可后补，缺失标记待补）</div></fieldset>';
+  openModal('创作合约模版录入（步骤③）— '+r.id, body,
+    '<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="submitCreationContract(\''+reqId+'\')">提交并自动创建内容（步骤④）</button>');
+  ccCalc(); ccVariantHint();
+}
+function ccVariantHint(){
+  var v=$('ccVariant').value;
+  var txt = v==='词' ? '变体=词：词作者必填，曲作者隐藏；步骤④创建<b>词作品</b>' :
+            v==='曲' ? '变体=曲：曲作者必填，词作者隐藏；步骤④创建<b>曲作品</b>' :
+            '变体=词&曲：词/曲作者均必填；步骤④创建<b>词曲作品</b>';
+  $('ccVariantHint').innerHTML = txt + '（切换变体将改变步骤④创建的作品类型）';
+}
+function ccCalc(){
+  var total=parseFloat($('ccTotal').value||0), rate=parseFloat($('ccTaxRate').value||0), pre=parseFloat($('ccPreRatio').value||0);
+  var net=Math.round(total/(1+rate/100));
+  $('ccNet').value=fmt(net); $('ccTax').value=fmt(total-net); $('ccPreAmt').value=fmt(Math.round(total*pre/100));
+}
+function submitCreationContract(reqId){
+  var r=REQS.filter(function(x){return x.id===reqId;})[0];
+  var v=$('ccVariant').value;
+  if((v==='词'||v==='词曲') && !$('ccLyricist').value.trim()){ toast('变体含词：词作者必填','err'); return; }
+  if((v==='曲'||v==='词曲') && !$('ccComposer').value.trim()){ toast('变体含曲：曲作者必填','err'); return; }
+  r.status='completed';
+  var typeMap={'词':'词','曲':'曲','词&曲':'词曲'};
+  var c={id:nid('DEMO-2026-'), req:reqId, name:$('ccName').value||r.name, type:typeMap[v],
+    lyricist:$('ccLyricist').value||'—', composer:$('ccComposer').value||'—',
+    contract:nid('CTR-C-2026-'), project:r.project, cat:r.cat, owner:r.owner};
+  CONTENTS.unshift(c);
+  log('创作合约录入+内容自动创建', c.id+' ← '+reqId+'（变体 '+v+'）');
+  APPROVALS.push({id:nid('AP-'), biz:'purchase', bizId:reqId, result:'approved', by:'负责人·周总', at:new Date().toLocaleString('zh-CN'), comment:'同意'});
+  closeModal();
+  toast('步骤④完成：系统已自动创建'+typeMap[v]+'作品与内容 '+c.id+'（词曲库已写入）；下一步：开始派生待办已生成','ok');
+  gotoWorkbenchContent(c.id);
+}
+
+/* ============ 审批中心（V3.6 单页台账 R39） ============ */
+function setAprTab(t){ var el=$('aprType'); if(el){ el.value=t; var st=$('aprStatus'); if(st) st.value='pending'; } renderApr(); }
+function resetApr(){ if($('aprType'))$('aprType').value='all'; if($('aprStatus'))$('aprStatus').value='pending'; if($('aprKw'))$('aprKw').value=''; renderApr(); }
+function aprRows(){
+  var type=$('aprType')?$('aprType').value:'all';
+  var kw=($('aprKw')?$('aprKw').value:'').trim().toLowerCase();
+  var st=$('aprStatus')?$('aprStatus').value:'pending';
+  var rows=[];
+  if(st==='pending'||st==='all'){
+    if(type==='all'||type==='purchase') REQS.filter(function(r){return r.status==='pending_approval';}).forEach(function(r){
+      rows.push({type:'采购审批',tag:'tag-blue',id:r.id,title:'《'+r.name+'》',amount:r.amount,status:badge(REQ_STATUS,'pending_approval'),at:'—',by:'—',
+        act:'<button class="btn primary sm" onclick="openPurchaseApproval(\''+r.id+'\')">审批</button>'});
+    });
+    if(type==='all'||type==='performer'){
+      var batches={}; PERF.filter(function(p){return p.status==='pending_approval';}).forEach(function(p){ (batches[p.batch]=batches[p.batch]||[]).push(p); });
+      PERF.filter(function(p){return p.status==='pending_approval';}).forEach(function(p){
+        var bn=batches[p.batch].length;
+        rows.push({type:'表演者审批',tag:'tag-purple',id:p.id,title:p.artist+'（批次 '+p.batch+'）',amount:null,status:badge(PERF_STATUS,'pending_approval'),at:'—',by:'—',
+          act:'<button class="btn primary sm" onclick="openPerfApproval(\''+p.id+'\')">审批</button>'});
+      });
+    }
+    if(type==='all'||type==='production') PROD.filter(function(p){return p.status==='pending_approval';}).forEach(function(p){
+      rows.push({type:(p.mode==='combo'?'合并审批':'制作审批'),tag:(p.mode==='combo'?'tag-pink':'tag-cyan'),id:p.id,title:p.artist+'×'+p.company+'·'+p.version,amount:p.fee,status:badge(PROD_STATUS,'pending_approval'),at:'—',by:'—',
+        act:'<button class="btn primary sm" onclick="openWorkbench(\''+p.id+'\')">审批</button>'});
+    });
+  }
+  if(st==='approved'||st==='rejected'||st==='all'){
+    APPROVALS.forEach(function(a){
+      if(st!=='all' && a.result!==st) return;
+      if(type==='purchase'&&a.biz!=='purchase') return;
+      if(type==='performer'&&a.biz!=='performer') return;
+      if(type==='production'&&a.biz!=='production') return;
+      var tn={purchase:'采购审批',performer:'表演者审批',production:'制作/合并审批'}[a.biz];
+      rows.push({type:tn,tag:'tag-gray',id:a.bizId,title:(a.comment||''),amount:null,status:(a.result==='approved'?'<span class="status status-active">通过</span>':'<span class="status status-off">驳回</span>'),at:a.at,by:a.by,act:'<span class="muted">—</span>'});
+    });
+  }
+  if(kw) rows=rows.filter(function(r){ return (r.id+' '+r.title).toLowerCase().indexOf(kw)>=0; });
+  return rows;
+}
+function renderApr(){
+  var rows=aprRows();
+  $('aprTable').innerHTML='<tr><th>类型</th><th>单据号</th><th>对象</th><th>金额</th><th>状态</th><th>时间</th><th>审批人</th><th>操作</th></tr>'+
+    (rows.map(function(r){ return '<tr><td><span class="tag '+r.tag+'">'+r.type+'</span></td><td>'+r.id+'</td><td>'+r.title+'</td><td>'+(r.amount==null?'—':'¥ '+fmt(r.amount))+'</td><td>'+r.status+'</td><td>'+r.at+'</td><td>'+r.by+'</td><td>'+r.act+'</td></tr>'; }).join('')||'<tr><td colspan="8" class="muted">无符合当前筛选条件的审批记录</td></tr>');
+  refreshBadge();
+}
+function approvePerfOne(id){
+  var p=PERF.filter(function(x){return x.id===id;})[0];
+  p.status='approved';
+  APPROVALS.push({id:nid('AP-'), biz:'performer', bizId:id, result:'approved', by:'负责人·周总', at:new Date().toLocaleString('zh-CN'), comment:'单条审批'});
+  log('表演者审批通过(单条)', id);
+  toast('表演者审批通过：下一步⑦制作申请待办已生成','ok');
+  showPage('wb');
+}
+function rejectPerfOne(id, comment){
+  var c=comment!==undefined?comment:prompt('驳回意见（必填）：');
+  if(!c) return;
+  var p=PERF.filter(function(x){return x.id===id;})[0];
+  p.status='draft';
+  APPROVALS.push({id:nid('AP-'), biz:'performer', bizId:id, result:'rejected', by:'负责人·周总', at:new Date().toLocaleString('zh-CN'), comment:c});
+  log('表演者审批驳回(单条)', id);
+  toast('已驳回回草稿','warn');
+  renderApr();
+}
+function approvePurchase(id, comment){
+  var r=REQS.filter(function(x){return x.id===id;})[0];
+  r.status='approved_pending_contract';
+  APPROVALS.push({id:nid('AP-'), biz:'purchase', bizId:id, result:'approved', by:'负责人·周总', at:new Date().toLocaleString('zh-CN'), comment:comment||'同意采购'});
+  log('采购审批通过', id);
+  toast('采购审批通过：下一步③创作合约录入待办已生成','ok');
+  showPage('wb');
+}
+function rejectPurchase(id, comment){
+  var c=comment!==undefined?comment:prompt('驳回意见（必填）：');
+  if(!c) return;
+  var r=REQS.filter(function(x){return x.id===id;})[0];
+  r.status='draft';
+  APPROVALS.push({id:nid('AP-'), biz:'purchase', bizId:id, result:'rejected', by:'负责人·周总', at:new Date().toLocaleString('zh-CN'), comment:c});
+  log('采购审批驳回', id+' '+c);
+  toast('已驳回回草稿，可改价/改立项信息重提','warn');
+  renderApr();
+}
+function openPurchaseApproval(id){
+  var r=REQS.filter(function(x){return x.id===id;})[0];
+  openModal('采购审批 — '+id+'（R47 单入口）',
+    '<div class="info-box blue">📊 决策卡：同类均价 ¥62,000 · 预算占用 68% · 权利规划：'+(r.lyric?'词':'')+(r.comp?'曲':'')+' · 立项负责人 '+r.owner+' · 金额 ¥'+fmt(r.amount)+'</div>'+
+    '<div class="info-box orange" style="margin-bottom:10px">《'+r.name+'》 '+r.project+' · '+r.cat+'</div>'+
+    '<div class="form-row"><label>审批意见</label><textarea id="apComment" rows="2" placeholder="驳回时必填"></textarea></div>',
+    '<button class="btn" onclick="closeModal()">取消</button>'+
+    '<button class="btn danger" onclick="submitPurchaseApproval(\''+id+'\',\'rejected\')">驳回</button>'+
+    '<button class="btn green" onclick="submitPurchaseApproval(\''+id+'\',\'approved\')">通过</button>');
+}
+function submitPurchaseApproval(id, result){
+  var cmt=$('apComment').value.trim();
+  if(result==='rejected'&&!cmt){ toast('驳回意见必填','err'); return; }
+  closeModal();
+  if(result==='approved') approvePurchase(id, cmt||'同意采购'); else rejectPurchase(id, cmt);
+}
+function openPerfApproval(id){
+  var p=PERF.filter(function(x){return x.id===id;})[0];
+  var batchCount=PERF.filter(function(x){return x.batch===p.batch&&x.status==='pending_approval';}).length;
+  openModal('表演者审批 — '+id+'（R47 单入口）',
+    '<div class="info-box blue">表演者：'+p.artist+' · 乙方：'+p.partyB+' · 版税分成 '+p.royaltyYears+'年 甲'+p.ratioA+':乙'+p.ratioB+' · 表演者合约 <span class="link" onclick="toast(\'查看合约录入快照（R18）\')">'+p.contract+'</span></div>'+
+    (batchCount>1?'<div class="form-row"><label>审批范围</label><div><label class="check-line"><input type="radio" name="apScope" value="one" checked> 仅本单</label><label class="check-line"><input type="radio" name="apScope" value="batch"> 同批批量通过（'+batchCount+' 单）</label></div></div>':'')+
+    '<div class="form-row"><label>审批意见</label><textarea id="apComment" rows="2" placeholder="驳回时必填"></textarea></div>',
+    '<button class="btn" onclick="closeModal()">取消</button>'+
+    '<button class="btn danger" onclick="submitPerfApproval(\''+id+'\',\'rejected\')">驳回</button>'+
+    '<button class="btn green" onclick="submitPerfApproval(\''+id+'\',\'approved\')">通过</button>');
+}
+function submitPerfApproval(id, result){
+  var p=PERF.filter(function(x){return x.id===id;})[0];
+  var scopeEl=document.querySelector('input[name=apScope]:checked');
+  var scope=scopeEl?scopeEl.value:'one';
+  var cmt=$('apComment').value.trim();
+  if(result==='rejected'&&!cmt){ toast('驳回意见必填','err'); return; }
+  closeModal();
+  if(scope==='batch'){ if(result==='approved') approvePerfBatch(p.batch); else rejectPerfBatch(p.batch, cmt); }
+  else { if(result==='approved') approvePerfOne(id); else rejectPerfOne(id, cmt); }
+}
+function approvePerfBatch(b){
+  PERF.filter(function(p){return p.batch===b && p.status==='pending_approval';}).forEach(function(p){ p.status='approved'; });
+  APPROVALS.push({id:nid('AP-'), biz:'performer', bizId:b, result:'approved', by:'负责人·周总', at:new Date().toLocaleString('zh-CN'), comment:'整批通过'});
+  log('表演者审批通过(批量)', b);
+  toast('表演者审批通过：下一步⑦制作申请待办已生成','ok');
+  showPage('wb');
+}
+function rejectPerfBatch(b, comment){
+  var c=comment!==undefined?comment:prompt('整批驳回意见（必填）：');
+  if(!c) return;
+  PERF.filter(function(p){return p.batch===b && p.status==='pending_approval';}).forEach(function(p){ p.status='draft'; });
+  APPROVALS.push({id:nid('AP-'), biz:'performer', bizId:b, result:'rejected', by:'负责人·周总', at:new Date().toLocaleString('zh-CN'), comment:c});
+  log('表演者审批驳回(批量)', b);
+  toast('已整批驳回回草稿','warn');
+  renderApr();
+}
+
+/* ============ 步骤⑧ 制作审批工作台 ============ */
+function openWorkbench(pid){
+  var p=PROD.filter(function(x){return x.id===pid;})[0];
+  var c=CONTENTS.filter(function(x){return x.id===p.demo;})[0];
+  var checks= p.mode==='combo' ? [
+    ['权利完整：词曲✅ 表演者✅ 录音✅（表演者+录音同源合并合约，审批通过即生效）', true],
+    ['合并合约实例录入齐备（演唱+制作空位·R29 固定条款并集）', true],
+    ['合约主体匹配：合并合约乙方 = '+p.company, true],
+    ['音频规格 '+p.spec+'（模版要求 44.1K/16bit 或 48K/24bit）', true],
+    ['专辑归属《'+p.album+'》（Q10 预设）', true],
+    ['物料：成品音源 '+(p.mats.audio?'✅':'❌')+' / 成品歌词 '+(p.mats.lyric?'✅':'❌'), !!(p.mats.audio&&p.mats.lyric)],
+    ['成本归集：采购分摊 + 合并费 ¥'+fmt(p.fee)+'（R28 打包总价）', true]
+  ] : [
+    ['权利完整：词曲✅ 表演者✅ 录音制作者⬜→通过即✅', true],
+    ['三类合约实例录入齐备（创作/表演者/委托制作）', true],
+    ['合约主体匹配：制作合约乙方 = '+p.company, true],
+    ['音频规格 '+p.spec+'（模版要求 44.1K/16bit 或 48K/24bit）', true],
+    ['专辑归属《'+p.album+'》（Q10 预设）', true],
+    ['物料：成品音源 '+(p.mats.audio?'✅':'❌')+' / 成品歌词 '+(p.mats.lyric?'✅':'❌'), !!(p.mats.audio&&p.mats.lyric)],
+    ['成本归集：采购分摊 + 制作费 ¥'+fmt(p.fee), true]
+  ];
+  var allOk = checks.every(function(k){return k[1];});
+  var body =
+    '<div class="info-box blue">'+c.id+'《'+c.name+'》- 制作申请 '+p.id+' · '+p.artist+' · '+p.version+'（步骤⑧审批工作台，继承 V2.0 审核工作台）</div>'+
+    '<div class="form-grid"><div><div class="info-box green" style="margin-bottom:8px">▶ 成品音源播放器（波形+进度条）<br>📄 成品歌词（同步高亮）<br>▶ DEMO 小样对比试听</div></div>'+
+    '<div>'+checks.map(function(k){ return '<div class="check-line"><span class="'+(k[1]?'ok':'no')+'">'+(k[1]?'✓':'✘')+'</span>'+k[0]+'</div>'; }).join('')+'</div></div>'+
+    '<div class="form-row"><label>审批意见</label><textarea id="wbComment" rows="2" placeholder="驳回时必填"></textarea></div>'+
+    (allOk?'':'<div class="info-box red" style="margin-bottom:0">存在未通过校验项，「通过并形成成品」已置灰</div>');
+  openModal((p.mode==='combo'?'演唱-制作合并审批工作台（⑥′ 一道审批）':'制作审批工作台（步骤⑧）'), body,
+    '<button class="btn" onclick="closeModal()">关闭</button>'+
+    '<button class="btn danger" onclick="rejectProd(\''+pid+'\')">驳回（回制作申请草稿）</button>'+
+    '<button class="btn green" '+(allOk?'':'disabled ')+'onclick="approveProd(\''+pid+'\')">通过并形成成品（步骤⑨）</button>');
+}
+function approveProd(pid){
+  var p=PROD.filter(function(x){return x.id===pid;})[0];
+  p.status='produced';
+  APPROVALS.push({id:nid('AP-'), biz:'production', bizId:pid, result:'approved', by:'负责人·周总', at:new Date().toLocaleString('zh-CN'), comment:$('wbComment').value||'同意'});
+  log('制作审批通过→成品形成(待同步)', pid);
+  closeModal();
+  toast('步骤⑨完成：成品已形成（待同步）；下一步：业务选择「同步成品库」（R43）','ok');
+  showPage('wb');
+}
+function rejectProd(pid){
+  var c=$('wbComment').value.trim();
+  if(!c){ toast('驳回意见必填','err'); return; }
+  var p=PROD.filter(function(x){return x.id===pid;})[0];
+  p.status='draft';
+  APPROVALS.push({id:nid('AP-'), biz:'production', bizId:pid, result:'rejected', by:'负责人·周总', at:new Date().toLocaleString('zh-CN'), comment:c});
+  log('制作审批驳回', pid+' '+c);
+  closeModal();
+  toast('已驳回回制作申请草稿，可改后重提','warn');
+  renderApr();
+}
+
+/* ============ 创作内容 ============ */
+function contentFiltered(){
+  var kw=($('cKw')?$('cKw').value:'').trim().toLowerCase();
+  var st=$('cStatus')?$('cStatus').value:'';
+  var ow=$('cOwner')?$('cOwner').value:'';
+  var ct=$('cCat')?$('cCat').value:'';
+  return CONTENTS.filter(function(c){
+    if(kw && (c.id+c.name).toLowerCase().indexOf(kw)<0) return false;
+    if(st && contentStatus(c)!==st) return false;
+    if(ow && c.owner!==ow) return false;
+    if(ct && c.cat!==ct) return false;
+    return true;
+  });
+}
+function resetContent(){ if($('cKw'))$('cKw').value=''; if($('cStatus'))$('cStatus').value=''; if($('cOwner'))$('cOwner').value=''; if($('cCat'))$('cCat').value=''; renderContent(); }
+function renderContent(){
+  var list=contentFiltered();
+  var cnt={pending_performer:0,pending_production:0,completed:0};
+  list.forEach(function(c){ var s=contentStatus(c); if(cnt[s]!==undefined) cnt[s]++; });
+  $('contentCards').innerHTML =
+    '<div class="stat-card blue"><div class="lb">待表演者（步骤⑤）</div><div class="vl">'+cnt.pending_performer+'</div></div>'+
+    '<div class="stat-card orange"><div class="lb">待制作（步骤⑦⑧）</div><div class="vl">'+cnt.pending_production+'</div></div>'+
+    '<div class="stat-card green"><div class="lb">完结（成品已形成）</div><div class="vl">'+cnt.completed+'</div></div>'+
+    '<div class="stat-card purple"><div class="lb">成品上限（Q5）</div><div class="vl">20</div><div class="dl">已终止不占额度</div></div>';
+  var rows='';
+  list.forEach(function(c){
+    var perfs=PERF.filter(function(p){return p.demo===c.id;});
+    var prods=PROD.filter(function(p){return p.demo===c.id;});
+    rows += '<tr><td><span class="link" onclick="openContent(\''+c.id+'\')">'+c.id+'</span></td><td><b>'+c.name+'</b><br><span class="muted">'+c.type+' · 词:'+c.lyricist+' 曲:'+c.composer+'</span></td>'+
+      '<td><span class="link" onclick="toast(\'跳转词曲库作品 composition_work_id\')">'+c.contract+'</span></td>'+
+      '<td>'+c.project+'<br><span class="tag tag-gray">'+c.cat+'</span></td>'+
+      '<td>'+perfs.length+'</td><td>'+prods.length+'</td><td>'+comboText(c)+'</td><td>'+contentBadge(c)+'</td>'+
+      '<td><span class="link" onclick="openContent(\''+c.id+'\')">查看</span> <span class="link" onclick="gotoWorkbenchContent(\''+c.id+'\')">办理</span></td></tr>';
+  });
+  $('contentTable').innerHTML='<tr><th>内容ID</th><th>作品</th><th>创作合约</th><th>立项</th><th>表演者申请</th><th>制作申请(成品)</th><th>成品构成</th><th>主状态</th><th>操作</th></tr>'+rows;
+}
+function backContentList(){ $('contentListView').style.display='block'; $('contentDetailView').style.display='none'; CURRENT_CONTENT=null; }
+function openContent(id){
+  CURRENT_CONTENT=id; CD_TAB='base';
+  $('contentListView').style.display='none'; $('contentDetailView').style.display='block';
+  renderContentDetail();
+}
+function renderContentDetail(){
+  var c=CONTENTS.filter(function(x){return x.id===CURRENT_CONTENT;})[0];
+  var prods=PROD.filter(function(p){return p.demo===c.id && p.status!=='terminated';});
+  $('cdTitle').textContent=c.id+'《'+c.name+'》';
+  $('cdStatus').innerHTML=contentBadge(c);
+  $('cdQuota').textContent='成品额度 '+prods.length+'/20';
+  $('cdGoBtn').onclick=function(){ gotoWorkbenchContent(c.id); };
+  var tabs=[['base','基本信息'],['matrix','派生矩阵'],['perf','表演者申请('+PERF.filter(function(p){return p.demo===c.id;}).length+')'],['prod','制作申请/成品('+PROD.filter(function(p){return p.demo===c.id;}).length+')'],['rights','权利链条'],['cost','成本与ROI'],['logs','审批与日志']];
+  $('cdTabs').innerHTML=tabs.map(function(t){ return '<div class="tab '+(CD_TAB===t[0]?'active':'')+'" onclick="setCdTab(\''+t[0]+'\')">'+t[1]+'</div>'; }).join('');
+  var html='';
+  if(CD_TAB==='base'){
+    html='<div class="card"><div class="info-box orange" style="margin-bottom:10px">档案只读（R33）。当前步骤：'+railCurrentLabel(c.id)+' · <span class="link" onclick="gotoWorkbenchContent(\''+c.id+'\')">办理</span></div>'+
+      '<table class="tbl" style="min-width:500px"><tr><th>字段</th><th>值</th></tr>'+
+      '<tr><td>采购申请单</td><td><span class="link" onclick="showPage(\'req\')">'+c.req+'</span></td></tr>'+
+      '<tr><td>作品类型 / 词曲作者</td><td>'+c.type+' / 词:'+c.lyricist+' 曲:'+c.composer+'</td></tr>'+
+      '<tr><td>创作合约实例</td><td><span class="link" onclick="toast(\'跳转合约管理：'+c.contract+'\')">'+c.contract+'</span>（已生效）</td></tr>'+
+      '<tr><td>立项信息</td><td>'+c.project+' · '+c.cat+' · '+c.owner+'</td></tr>'+
+      '<tr><td>物料槽位</td><td>DEMO小样 <span class="tag tag-orange">待补</span> 歌词 <span class="tag tag-orange">待补</span>（N6：可后补）</td></tr>'+
+      '</table></div>';
+  }
+  if(CD_TAB==='matrix'){
+    html=renderMatrix(c.id);
+  }
+  if(CD_TAB==='perf'){
+    var perfs=PERF.filter(function(p){return p.demo===c.id;});
+    html='<div class="card"><div class="scroll-x"><table class="tbl"><tr><th>申请单</th><th>表演者</th><th>乙方</th><th>版税分成</th><th>表演者合约</th><th>状态</th><th>派生成品</th></tr>'+
+      perfs.map(function(p){
+        var myProds=PROD.filter(function(x){return x.perf===p.id && x.status!=='terminated';});
+        var ops='<span class="muted">'+myProds.length+' 个成品单</span>';
+        return '<tr><td>'+p.id+'</td><td>'+p.artist+'</td><td>'+p.partyB+'</td><td>'+p.royaltyYears+'年 甲'+p.ratioA+':乙'+p.ratioB+'</td><td><span class="link" onclick="toast(\'合约录入快照：'+p.contract+'\')">'+p.contract+'</span></td><td>'+badge(PERF_STATUS,p.status)+'</td><td>'+ops+'</td></tr>';
+      }).join('')+'</table></div></div>';
+  }
+  if(CD_TAB==='prod'){
+    var prods2=PROD.filter(function(p){return p.demo===c.id;});
+    var groups={};
+    prods2.forEach(function(p){ (groups[p.artist]=groups[p.artist]||[]).push(p); });
+    var body2='';
+    Object.keys(groups).forEach(function(a){
+      body2+='<tr><td colspan="9" style="background:#f8fafc"><b>表演者：'+a+'</b> <span class="muted">'+groups[a].length+' 个成品单（同一词曲 · 按公司/版本交叉派生 R8′）</span></td></tr>';
+      groups[a].forEach(function(p){
+        var ops='';
+        if(p.song) ops+='<span class="link" onclick="toast(\'跳转歌曲库成品 '+p.song+'；同源词曲成品按 composition_work_id 聚展示（3.5）\')">成品</span>';
+        if(!ops) ops='<span class="muted">—</span>';
+        body2+='<tr><td>'+p.id+'</td><td>'+p.artist+'</td><td><span class="tag tag-cyan">'+p.version+'</span> <span class="tag '+(p.mode==='combo'?'tag-pink':'tag-blue')+'">'+(p.mode==='combo'?'合并·1合约1审批':'顺序·2合约2审批')+'</span></td><td>'+p.company+'<br>'+p.producer+'</td><td>'+p.album+'</td><td><span class="link" onclick="toast(\'合约录入快照：'+p.contract+'\')">'+p.contract+'</span></td><td>¥'+fmt(p.fee)+'</td><td>'+badge(PROD_STATUS,p.status)+'</td><td>'+ops+'</td></tr>';
+      });
+    });
+    html='<div class="card"><div class="scroll-x"><table class="tbl"><tr><th>制作申请(成品单)</th><th>表演者</th><th>版本</th><th>制作公司/制作人</th><th>专辑</th><th>制作合约</th><th>制作费</th><th>状态</th><th>操作</th></tr>'+body2+'</table></div></div>';
+  }
+  if(CD_TAB==='rights'){
+    html='<div class="card"><h3>权利链条（三权聚合）</h3>'+
+      '<div class="flex" style="gap:14px"><div class="stat-card green" style="flex:1"><div class="lb">词曲著作权</div><div class="vl" style="font-size:14px">✅ 创作合约</div><div class="dl">'+c.contract+' 已生效 · 全球/永久</div></div>'+
+      '<div class="stat-card green" style="flex:1"><div class="lb">表演者权</div><div class="vl" style="font-size:14px">'+(PERF.some(function(p){return p.demo===c.id&&p.status==='approved';})?'✅ 表演者合约生效':'⬜ 待表演者审批')+'</div><div class="dl">步骤⑥通过后生效</div></div>'+
+      '<div class="stat-card orange" style="flex:1"><div class="lb">录音制作者权</div><div class="vl" style="font-size:14px">'+(PROD.some(function(p){return p.demo===c.id&&['produced','synced','online','offline'].indexOf(p.status)>=0;})?'✅ 制作合约生效':'⬜ 待制作审批')+'</div><div class="dl">步骤⑧通过后生效</div></div></div>'+
+      '<div class="info-box blue mt12" style="margin-bottom:8px">三权齐备才允许成品形成与分发（R17）；缺口在制作审批工作台前置阻断。词曲著作权为<b>共享层</b>（一份），表演者权/录音制作者权按成品单展开：</div>'+
+      '<div class="scroll-x"><table class="tbl" style="min-width:560px"><tr><th>成品单</th><th>表演者（表演者合约）</th><th>制作公司（制作合约）</th><th>权利链条</th></tr>'+
+      PROD.filter(function(p){return p.demo===c.id&&p.status!=='terminated';}).map(function(p){
+        var rec=['produced','synced','online','offline'].indexOf(p.status)>=0;
+        var perfOk = p.mode==='combo' ? rec : PERF.some(function(x){return x.id===p.perf&&x.status==='approved';});
+        var src = p.mode==='combo' ? ' · 同源合并合约 '+p.contract : '';
+        return '<tr><td>'+p.id+' · '+p.version+' <span class="tag '+(p.mode==='combo'?'tag-pink':'tag-blue')+'">'+(p.mode==='combo'?'合并':'顺序')+'</span></td><td>'+p.artist+' '+(perfOk?'✅':'⬜')+(p.mode==='combo'&&rec?' <span class="muted">(合并合约)</span>':'')+'</td><td>'+p.company+' '+(rec?'✅':'⬜')+'</td><td>词曲✅ → 表演者'+(perfOk?'✅':'⬜')+' → 录音'+(rec?'✅':'⬜')+src+'</td></tr>';
+      }).join('')+'</table></div></div>';
+  }
+  if(CD_TAB==='cost'){
+    var prods3=PROD.filter(function(p){return p.demo===c.id;});
+    var req=REQS.filter(function(r){return r.id===c.req;})[0];
+    var purchase=req?req.amount:66000;
+    var valid=prods3.filter(function(p){return p.status!=='terminated';});
+    var share=valid.length?Math.round(purchase/valid.length):purchase;
+    html='<div class="card"><h3>成本与ROI <span class="sub">分摊默认平均，可配收益权重（Q6 保留）</span></h3>'+
+      '<div class="scroll-x"><table class="tbl" style="min-width:560px"><tr><th>成品单</th><th>采购分摊</th><th>制作费</th><th>单成品成本</th><th>状态</th></tr>'+
+      valid.map(function(p){ return '<tr><td>'+p.id+'</td><td>¥'+fmt(share)+'</td><td>¥'+fmt(p.fee)+'</td><td>¥'+fmt(share+p.fee)+'</td><td>'+badge(PROD_STATUS,p.status)+'</td></tr>'; }).join('')+
+      '</table></div>'+costPivot(valid, share)+
+      '<div class="info-box purple mt8" style="margin-bottom:0">采购成本来源=采购申请单金额（¥'+fmt(purchase)+'）；已终止成品单不参与分摊，额度由剩余均摊（R12）。</div></div>';
+  }
+  if(CD_TAB==='logs'){
+    var aps=APPROVALS.filter(function(a){ return a.bizId.indexOf(c.id)>=0 || CONTENTS.filter(function(x){return x.id===c.id;}).length&&false; });
+    html='<div class="card"><h3>审批记录</h3><div class="scroll-x"><table class="tbl" style="min-width:560px"><tr><th>类型</th><th>对象</th><th>结论</th><th>审批人</th><th>时间</th><th>意见</th></tr>'+
+      APPROVALS.filter(function(a){ return a.bizId===c.req || a.bizId.indexOf(c.id)>=0 || PERF.some(function(p){return p.demo===c.id&&p.batch===a.bizId;}) || PROD.some(function(p){return p.demo===c.id&&p.id===a.bizId;}); }).map(function(a){
+        var tn={purchase:'采购',performer:'表演者',production:'制作'}[a.biz];
+        return '<tr><td><span class="tag tag-blue">'+tn+'</span></td><td>'+a.bizId+'</td><td>'+(a.result==='approved'?'通过':'驳回')+'</td><td>'+a.by+'</td><td>'+a.at+'</td><td>'+a.comment+'</td></tr>';
+      }).join('')+'</table></div></div>'+
+      '<div class="card"><h3>操作日志</h3><div class="scroll-x"><table class="tbl" style="min-width:560px"><tr><th>时间</th><th>动作</th><th>备注</th></tr>'+
+      LOGS.map(function(l){ return '<tr><td>'+l[0]+'</td><td>'+l[1]+'</td><td>'+l[2]+'</td></tr>'; }).join('')+'</table></div></div>';
+  }
+  $('cdBody').innerHTML=html;
+}
+function setCdTab(t){ CD_TAB=t; renderContentDetail(); }
+function terminateContent(id){
+  var reason=prompt('终止原因（必填，二次确认：将终止全部内容下申请单）：');
+  if(!reason) return;
+  log('内容终止', id+' '+reason);
+  toast(id+' 已终止（演示：状态置已终止）','warn');
+}
+
+/* ============ 步骤⑤ 表演者申请 ============ */
+var PERF_SEL = {};
+function openPerfModal(cid){
+  PERF_SEL={};
+  var body='<div class="info-box blue">多选表演者 → 批量生成 N 个表演者申请单（步骤⑤）；每行录入委托演唱合同模版（2、表演者合同.docx）。上限校验：成品额度 ≤20（R7）。</div>'+
+    '<div id="perfPick">'+ARTISTS.map(function(a){ return '<div class="pick-row" id="pk_'+a+'" onclick="togglePerf(\''+a+'\')"><input type="checkbox" id="ck_'+a+'" onclick="event.stopPropagation();togglePerf(\''+a+'\')"><b>'+a+'</b><span class="muted">艺人库</span></div>'; }).join('')+'</div>'+
+    '<fieldset class="grp"><legend>乙方与表演者合约模版（应用到全部所选行）</legend>'+
+    '<div class="form-row"><label>乙方(经纪方) *</label><select id="pfPartyB"><option>星声经纪</option><option>HH文化</option></select></div>'+
+    '<div class="form-row"><label>版税分成年限 *</label><input id="pfYears" type="number" value="3"></div>'+
+    '<div class="form-row"><label>分成 甲:乙 *</label><input id="pfRatio" value="70:30"></div>'+
+    '<div class="form-row"><label>标的首数(原/伴)</label><input id="pfCount" value="1 / 1"></div>'+
+    '<div class="form-row"><label>合作期间 *</label><input id="pfPeriod" value="2026-11-15 ~ 2027-05-15"></div>'+
+    '<div class="muted" style="font-size:11px">固定条款：录音制品/母盘自产生之日起永久归甲方；表演者仅享署名权；全球/永久。附件：《表演者权利声明书》按人生成。</div></fieldset>';
+  openModal('表演者申请（步骤⑤）— '+cid, body,
+    '<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="submitPerf(\''+cid+'\')">提交（进入步骤⑥审批）</button>');
+}
+function togglePerf(a){
+  PERF_SEL[a]=!PERF_SEL[a];
+  $('pk_'+a).classList.toggle('sel', !!PERF_SEL[a]);
+  $('ck_'+a).checked=!!PERF_SEL[a];
+}
+function submitPerf(cid){
+  var sel=ARTISTS.filter(function(a){return PERF_SEL[a];});
+  if(!sel.length){ toast('至少选择1个表演者','err'); return; }
+  var c=CONTENTS.filter(function(x){return x.id===cid;})[0];
+  var exist=PROD.filter(function(p){return p.demo===cid&&p.status!=='terminated';}).length;
+  if(exist+sel.length>20){ toast('超出成品上限20（R7）','err'); return; }
+  var locked=sel.filter(function(a){ return PROD.some(function(p){return p.demo===cid&&p.artist===a&&p.mode==='combo'&&p.status!=='terminated';}); });
+  if(locked.length){ toast('R26 模式锁定：'+locked.join('、')+' 已有合并成品单，不可再建顺序表演者申请（终止原单后解锁）','err'); return; }
+  var ratio=$('pfRatio').value.split(':');
+  var batch=nid('B-2026-');
+  sel.forEach(function(a){
+    PERF.push({id:cid+'-F'+(PERF.filter(function(p){return p.demo===cid;}).length+1), demo:cid, batch:batch, artist:a,
+      partyB:$('pfPartyB').value, royaltyYears:parseInt($('pfYears').value||3), ratioA:parseInt(ratio[0]||70), ratioB:parseInt(ratio[1]||30),
+      contract:nid('CTR-P-2026-'), status:'pending_approval'});
+  });
+  log('表演者申请提交(批量)', cid+' ×'+sel.length+' 批次'+batch);
+  closeModal();
+  toast('已生成 '+sel.length+' 个表演者申请单，进入步骤⑥负责人审批','ok');
+  renderWorkbench();
+}
+function resubmitPerf(id){
+  var p=PERF.filter(function(x){return x.id===id;})[0];
+  p.status='pending_approval'; log('表演者申请重提', id);
+  toast(id+' 已重提审批','ok'); renderWorkbench();
+}
+function terminatePerf(id){
+  var reason=prompt('终止原因（必填；不占成品额度）：');
+  if(!reason) return;
+  var p=PERF.filter(function(x){return x.id===id;})[0];
+  p.status='terminated'; log('表演者申请终止', id+' '+reason);
+  toast(id+' 已终止','warn'); renderContentDetail();
+}
+
+/* ============ 步骤⑦ 制作申请 ============ */
+function openProdModal(perfId, pre){
+  pre=pre||{};
+  var p=PERF.filter(function(x){return x.id===perfId;})[0];
+  var comps=Object.keys(COMPANIES);
+  if(pre.company && comps.indexOf(pre.company)<0) comps.push(pre.company);
+  var body='<div class="info-box blue">制作申请单=成品单（步骤⑦）；录入委托制作合同模版（4、委托制作合同-（后期制作）.docx）。乙方须=制作公司（R5）。</div>'+
+    '<div class="form-row"><label>承接表演者</label><input value="'+p.artist+'（'+perfId+'）" disabled></div>'+
+    '<div class="form-row"><label>制作公司 *</label><select id="pdCompany" onchange="pdProducerReset()">'+comps.map(function(c2){return '<option '+(pre.company===c2?'selected':'')+'>'+c2+'</option>';}).join('')+'</select></div>'+
+    '<div class="form-row"><label>制作人 *</label><select id="pdProducer"></select></div>'+
+    '<div class="form-row"><label>专辑归属 *（Q10）</label><select id="pdAlbum">'+ALBUMS.map(function(a){return '<option '+(pre.album===a?'selected':'')+'>'+a+'</option>';}).join('')+'</select></div>'+
+    '<div class="form-row"><label>版本类型 *</label><select id="pdVersion">'+['原版','国语','粤语','Remix','Live','伴奏'].map(function(v){return '<option '+(pre.version===v?'selected':'')+'>'+v+'</option>';}).join('')+'</select></div>'+
+    '<fieldset class="grp"><legend>委托制作合约模版录入</legend>'+
+    '<div class="form-grid">'+
+    '<div class="form-row"><label>原曲/伴奏首数</label><input id="pdCount" value="1 / 1"></div>'+
+    '<div class="form-row"><label>音频规格 *</label><select id="pdSpec">'+['44.1K 16bit','48K 24bit'].map(function(s){return '<option '+(pre.spec===s?'selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'+
+    '<div class="form-row"><label>合作期间 *</label><input id="pdPeriod" value="2026-11-20 ~ 2027-01-20"></div>'+
+    '<div class="form-row"><label>交付单元</label><input id="pdUnit" value="每1月≥1首"></div>'+
+    '<div class="form-row"><label>含税总价 *</label><input id="pdTotal" type="number" value="20000"></div>'+
+    '<div class="form-row"><label>预付款比例%</label><input id="pdPre" type="number" value="30"></div></div>'+
+    '<div class="form-row"><label>制作工序 *</label><input id="pdProcess" value="'+(pre.process||'编曲、配器、录音、修音、混音、母带合成')+'"></div>'+
+    '<div class="muted" style="font-size:11px">固定条款：录音制品自产生之日起永久归甲方；全球/永久；乙方不得自行/授权第三方使用词曲。</div></fieldset>'+
+    '<fieldset class="grp"><legend>物料上传（版本化，R16）</legend>'+
+    '<div class="check-line"><input type="checkbox" id="pdMatAudio" checked> 成品音源（wav 优先，≤500MB）</div>'+
+    '<div class="check-line"><input type="checkbox" id="pdMatLyric" checked> 成品歌词（lrc，≤20MB）</div></fieldset>'+
+    '<div class="form-row"><label>制作费用 *</label><input id="pdFee" type="number" value="'+(pre.fee||20000)+'"></div>';
+  openModal('制作申请（步骤⑦）— 表演者 '+p.artist+(pre.company?'（派生相似/矩阵预填）':''), body,
+    '<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="submitProd(\''+perfId+'\')">提交（进入步骤⑧审批）</button>');
+  pdProducerReset();
+  if(pre.producer){ var pps=$('pdProducer').options; for(var pi=0;pi<pps.length;pi++){ if(pps[pi].text===pre.producer) $('pdProducer').selectedIndex=pi; } }
+}
+function pdProducerReset(){
+  var comp=$('pdCompany').value;
+  $('pdProducer').innerHTML=COMPANIES[comp].map(function(p){return '<option>'+p+'</option>';}).join('');
+}
+function submitProd(perfId){
+  var p=PERF.filter(function(x){return x.id===perfId;})[0];
+  var dup=PROD.filter(function(x){return x.perf===perfId && x.company===$('pdCompany').value && x.version===$('pdVersion').value && x.status!=='terminated';});
+  if(dup.length){ toast('同表演者+同制作公司+同版本不可重复建单（R8′）','err'); return; }
+  PROD.push({id:p.demo+'-P'+(PROD.filter(function(x){return x.demo===p.demo;}).length+1), demo:p.demo, perf:perfId, artist:p.artist,
+    company:$('pdCompany').value, producer:$('pdProducer').value, album:$('pdAlbum').value, version:$('pdVersion').value,
+    fee:parseFloat($('pdFee').value||0), main:1, acc:0, spec:$('pdSpec').value, process:$('pdProcess').value, contract:nid('CTR-M-2026-'), status:'pending_approval',
+    mats:{audio:$('pdMatAudio').checked?1:0, lyric:$('pdMatLyric').checked?1:0}});
+  log('制作申请提交', perfId+' → '+$('pdVersion').value);
+  closeModal();
+  toast('制作申请已提交，进入步骤⑧负责人审批','ok');
+  renderWorkbench();
+}
+function resubmitProd(id){
+  var p=PROD.filter(function(x){return x.id===id;})[0];
+  p.status='pending_approval'; log('制作申请重提', id);
+  toast(id+' 已重提审批','ok'); renderWorkbench();
+}
+function terminateProd(id){
+  var reason=prompt('终止原因（必填；不占额度，成本分摊回收）：');
+  if(!reason) return;
+  var p=PROD.filter(function(x){return x.id===id;})[0];
+  p.status='terminated'; log('制作申请(成品单)终止', id+' '+reason);
+  toast(id+' 已终止（额度回收）','warn'); renderContentDetail();
+}
+function syncProd(id){
+  var p=PROD.filter(function(x){return x.id===id;})[0];
+  if(p.status!=='produced'){ toast('仅"已形成·待同步"成品可同步成品库','err'); return; }
+  p.status='synced'; p.song=p.song||nid('S-2026-');
+  log('同步成品库', id+' → '+p.song+'（写歌曲库·继承权利/专辑/表演者）');
+  toast('已同步成品库（'+p.song+'），分发上线案件已生成（R44）','ok');
+  renderWorkbench();
+}
+function goOnline(id){
+  var p=PROD.filter(function(x){return x.id===id;})[0];
+  if(p.status!=='synced'){ toast('须先同步成品库后再分发上线（R44）','err'); return; }
+  p.status='online'; log('分发上线', id);
+  toast(id+' 已推入待分发队列并上线（复用分发管理）','ok'); renderWorkbench();
+}
+function goOffline(id){
+  var reason=prompt('下架原因（必填枚举：权利瑕疵/内容质量/商业决策/艺人舆情/合约到期/其他）：');
+  if(!reason) return;
+  var p=PROD.filter(function(x){return x.id===id;})[0];
+  p.status='offline'; p.offlineReason=reason; log('召回下架', id+' '+reason);
+  toast(id+' 已下架（主状态不回退，角标体现）','warn'); renderWorkbench();
+}
+
+/* ============ V3.1 一对多派生（表演者 × 制作公司） ============ */
+function comboText(c){
+  var artists={}, comps={};
+  PERF.filter(function(p){return p.demo===c.id&&p.status!=='terminated';}).forEach(function(p){artists[p.artist]=1;});
+  PROD.filter(function(p){return p.demo===c.id&&p.status!=='terminated';}).forEach(function(p){comps[p.company]=1;});
+  var na=Object.keys(artists).length, nc=Object.keys(comps).length;
+  var np=PROD.filter(function(p){return p.demo===c.id&&p.status!=='terminated';}).length;
+  if(!na&&!nc) return '—';
+  return '<span class="tag tag-purple">'+na+'表演者 × '+nc+'公司</span>= '+np+'成品';
+}
+function renderMatrix(cid){
+  var info={};
+  PERF.filter(function(p){return p.demo===cid&&p.status!=='terminated';}).forEach(function(p){
+    info[p.artist]=info[p.artist]||{mode:'seq',approved:false,perfId:p.id};
+    if(p.status==='approved') info[p.artist].approved=true;
+  });
+  PROD.filter(function(p){return p.demo===cid&&p.mode==='combo'&&p.status!=='terminated';}).forEach(function(p){
+    if(!info[p.artist]) info[p.artist]={mode:'combo',approved:false,perfId:null};
+  });
+  var comps=Object.keys(COMPANIES);
+  PROD.filter(function(p){return p.demo===cid;}).forEach(function(p){ if(comps.indexOf(p.company)<0) comps.push(p.company); });
+  var head='<tr><th>表演者 \\ 制作公司</th>'+comps.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr>';
+  var rows=Object.keys(info).map(function(artist){
+    var inf=info[artist];
+    return '<tr><td><b>'+artist+'</b> '+(inf.mode==='combo'?'<span class="tag tag-pink">合并模式</span>':'<span class="tag tag-blue">顺序模式</span>')+(inf.approved?' '+badge(PERF_STATUS,'approved'):'')+'<br><span class="muted">'+(inf.perfId||'无表演者申请单（合并路径）')+'</span></td>'+comps.map(function(cp){
+      var cells=PROD.filter(function(p){return p.demo===cid&&p.artist===artist&&p.company===cp&&p.status!=='terminated';});
+      if(cells.length){
+        return '<td>'+cells.map(function(p){return '<div>'+badge(PROD_STATUS,p.status)+' <span class="tag '+(p.mode==='combo'?'tag-pink':'tag-blue')+'">'+(p.mode==='combo'?'合并':'顺序')+'</span> <span class="tag tag-cyan">'+p.version+'</span></div>';}).join('')+'</td>';
+      }
+      if(inf.approved){
+        return '<td><span class="muted">可派生（顺序·复用表演者合约）</span></td>';
+      }
+      if(inf.mode==='combo'){
+        return '<td><span class="muted">可派生（合并·R26锁定）</span></td>';
+      }
+      return '<td><span class="muted">可派生（顺序/合并）</span></td>';
+    }).join('')+'</tr>';
+  }).join('');
+  return '<div class="card"><h3>派生矩阵 <span class="sub">一份词曲 → 表演者 × 制作公司 交叉派生；V3.2 双模式：顺序(2合约2审批) / 合并(1合约1审批)</span></h3>'+
+    '<div class="info-box orange" style="margin-bottom:8px">查看组件（只读）。派生操作请前往<span class="link" onclick="gotoWorkbenchContent(\''+cid+'\')">办理</span></div>'+
+    (rows?'<div class="scroll-x"><table class="tbl">'+head+rows+'</table></div>':'<div class="muted">暂无派生，请先完成步骤⑤表演者申请或使用合并派生。</div>')+'</div>';
+}
+var BD={cid:null, ps:{}, cs:{}, checks:{}, perfs:[], comps:[]};
+function companyPrefill(company){
+  var list=PROD.filter(function(p){return p.company===company&&p.status!=='terminated';});
+  var last=list.length?list[list.length-1]:null;
+  if(last) return {fee:last.fee, spec:last.spec, album:last.album, process:last.process||'编曲、配器、录音、修音、混音、母带合成', producer:last.producer};
+  return {fee:20000, spec:'44.1K 16bit', album:ALBUMS[0], process:'编曲、配器、录音、修音、混音、母带合成', producer:(COMPANIES[company]||['制作人'])[0]};
+}
+function openBatchDerive(cid){
+  BD={cid:cid, ps:{}, cs:{}, checks:{}, mode:'seq', perfs:[], comps:Object.keys(COMPANIES)};
+  var body='<div class="info-box blue">V3.2 双模式：<b>顺序</b>=已批准表演者申请×公司→制作申请（表演者合约复用 R21）；<b>合并</b>=表演者×公司直接生成合并成品单（演唱+制作一合约一审批 R25）。组合预览自动跳过已存在（R22）；草稿按同公司快照预填（R23）。</div>'+
+    '<div class="form-row"><label>派生模式 *</label><select id="bdMode" onchange="bdModeChange()"><option value="seq">顺序（表演者合约+制作合约·2审批）</option><option value="combo">合并（演唱+制作一合约·1审批）</option></select></div>'+
+    '<div class="form-row"><label>版本类型</label><select id="bdVersion" onchange="bdPreview()"><option>原版</option><option>国语</option><option>粤语</option><option>Remix</option><option>Live</option><option>伴奏</option></select></div>'+
+    '<fieldset class="grp"><legend id="bdPickLegend">表演者（已批准）</legend><div id="bdPickBox"></div></fieldset>'+
+    '<fieldset class="grp"><legend>制作公司</legend>'+BD.comps.map(function(c,i){return '<div class="pick-row" id="bdp_c'+i+'" onclick="toggleBdC('+i+')"><input type="checkbox" id="bdc_c'+i+'" onclick="event.stopPropagation();toggleBdC('+i+')"><b>'+c+'</b></div>';}).join('')+'</fieldset>'+
+    '<div id="bdPreviewBox"></div>';
+  openModal('矩阵批量派生成品 — '+cid, body,
+    '<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="submitBatchDerive()">生成草稿</button>');
+  bdModeChange();
+}
+function bdModeChange(){
+  BD.mode=$('bdMode').value;
+  BD.ps={}; BD.checks={};
+  if(BD.mode==='seq'){
+    BD.perfs=PERF.filter(function(p){return p.demo===BD.cid&&p.status==='approved';});
+    $('bdPickLegend').textContent='表演者（已批准表演者申请单·合约复用）';
+  } else {
+    BD.perfs=ARTISTS.filter(function(a){ return !PERF.some(function(p){return p.demo===BD.cid&&p.artist===a&&p.status!=='terminated';}); }).map(function(a){return {artist:a, id:'(合并·无表演者申请)'};});
+    $('bdPickLegend').textContent='表演者（艺人库·排除已有表演者申请单者 R26）';
+  }
+  $('bdPickBox').innerHTML=BD.perfs.length?BD.perfs.map(function(p,i){return '<div class="pick-row" id="bdp_p'+i+'" onclick="toggleBdP('+i+')"><input type="checkbox" id="bdc_p'+i+'" onclick="event.stopPropagation();toggleBdP('+i+')"><b>'+p.artist+'</b><span class="muted">'+(BD.mode==='seq'?p.id+' · 合约复用':'合并模式 · 无需表演者申请')+'</span></div>';}).join(''):'<div class="muted">'+(BD.mode==='seq'?'暂无已批准表演者申请单':'全部表演者均已有表演者申请单（R26 锁定顺序模式）')+'</div>';
+  bdPreview();
+}
+function toggleBdP(i){ BD.ps[i]=!BD.ps[i]; $('bdp_p'+i).classList.toggle('sel',!!BD.ps[i]); $('bdc_p'+i).checked=!!BD.ps[i]; bdPreview(); }
+function toggleBdC(i){ BD.cs[i]=!BD.cs[i]; $('bdp_c'+i).classList.toggle('sel',!!BD.cs[i]); $('bdc_c'+i).checked=!!BD.cs[i]; bdPreview(); }
+function bdCombos(){
+  var v=$('bdVersion')?$('bdVersion').value:'原版';
+  var out=[];
+  BD.perfs.forEach(function(pf,i){
+    if(!BD.ps[i]) return;
+    BD.comps.forEach(function(cp,j){
+      if(!BD.cs[j]) return;
+      var exists=PROD.some(function(p){return p.demo===BD.cid&&p.artist===pf.artist&&p.company===cp&&p.version===v&&p.status!=='terminated';});
+      out.push({pf:pf, company:cp, version:v, exists:exists, key:pf.artist+'|'+cp+'|'+v});
+    });
+  });
+  return out;
+}
+function bdPreview(){
+  var combos=bdCombos();
+  combos.forEach(function(cb){ if(BD.checks[cb.key]===undefined) BD.checks[cb.key]=!cb.exists; });
+  var existing=PROD.filter(function(p){return p.demo===BD.cid&&p.status!=='terminated';}).length;
+  var sel=combos.filter(function(cb){return BD.checks[cb.key]&&!cb.exists;}).length;
+  var over=existing+sel>20;
+  var html='<div class="info-box '+(over?'red':'green')+'" style="margin-bottom:8px">额度校验：现有有效成品 '+existing+' + 新增 '+sel+' = '+(existing+sel)+' / 20 '+(over?'❌ 超上限阻断（R7/R22）':'✅')+'</div>';
+  if(combos.length){
+    html+='<div class="scroll-x"><table class="tbl" style="min-width:520px"><tr><th></th><th>组合（表演者×公司×版本）</th><th>预填来源</th></tr>'+
+      combos.map(function(cb){
+        return '<tr><td>'+(cb.exists?'<span class="muted">跳过</span>':'<input type="checkbox" '+(BD.checks[cb.key]?'checked':'')+' onchange="BD.checks[\''+cb.key+'\']=this.checked;bdPreview()">')+'</td>'+
+          '<td><b>'+cb.pf.artist+'</b> × '+cb.company+' · '+cb.version+(cb.exists?' <span class="tag tag-orange">已存在·自动跳过</span>':'')+'</td>'+
+          '<td class="muted">'+(cb.exists?'—':cb.company+' 最近合约快照')+'</td></tr>';
+      }).join('')+'</table></div>';
+  } else {
+    html+='<div class="muted">请先勾选表演者与制作公司</div>';
+  }
+  $('bdPreviewBox').innerHTML=html;
+}
+function submitBatchDerive(){
+  var combos=bdCombos().filter(function(cb){return BD.checks[cb.key]&&!cb.exists;});
+  if(!combos.length){ toast('无可派生组合','warn'); return; }
+  var existing=PROD.filter(function(p){return p.demo===BD.cid&&p.status!=='terminated';}).length;
+  if(existing+combos.length>20){ toast('超出成品上限20（R7/R22），阻断','err'); return; }
+  var batch=nid('BD-');
+  combos.forEach(function(cb){
+    var pre=companyPrefill(cb.company);
+    if(BD.mode==='combo'){
+      PROD.push({id:cb.pf.demo+'-P'+(PROD.filter(function(x){return x.demo===cb.pf.demo;}).length+1), demo:cb.pf.demo, perf:null, mode:'combo', artist:cb.pf.artist,
+        company:cb.company, producer:pre.producer, album:pre.album, version:cb.version, fee:pre.fee, main:1, acc:0, spec:pre.spec, process:pre.process,
+        contract:nid('CTR-CP-2026-'), status:'draft', derive_batch:batch, mats:{audio:1, lyric:1}});
+    } else {
+      PROD.push({id:cb.pf.demo+'-P'+(PROD.filter(function(x){return x.demo===cb.pf.demo;}).length+1), demo:cb.pf.demo, perf:cb.pf.id, artist:cb.pf.artist,
+        company:cb.company, producer:pre.producer, album:pre.album, version:cb.version, fee:pre.fee, main:1, acc:0, spec:pre.spec, process:pre.process,
+        contract:nid('CTR-M-2026-'), status:'draft', derive_batch:batch, mats:{audio:1, lyric:1}});
+    }
+  });
+  log('矩阵批量派生成品('+(BD.mode==='combo'?'合并':'顺序')+')', BD.cid+' 批次'+batch+' ×'+combos.length);
+  closeModal();
+  toast('已生成 '+combos.length+' 个'+(BD.mode==='combo'?'合并':'顺序')+'成品单草稿（同公司合约快照预填），确认后重提进入审批','ok');
+  renderWorkbench();
+}
+function cloneProd(pid){
+  var s=PROD.filter(function(x){return x.id===pid;})[0];
+  if(s.mode==='combo'){ openComboModal(s.artist, s.company, s.demo); toast('派生相似(合并)：已预填 '+pid+' 的表演者与公司，请变更公司或版本后提交（R24）','ok'); return; }
+  openProdModal(s.perf, {company:s.company, version:s.version, fee:s.fee, spec:s.spec, album:s.album, process:s.process, producer:s.producer});
+  toast('派生相似：已预填 '+pid+'，请变更制作公司或版本后提交（R24）','ok');
+}
+function costPivot(valid, share){
+  var comps=[], artists=[];
+  valid.forEach(function(p){ if(comps.indexOf(p.company)<0) comps.push(p.company); if(artists.indexOf(p.artist)<0) artists.push(p.artist); });
+  if(!valid.length) return '';
+  var head='<tr><th>表演者 \\ 公司</th>'+comps.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr>';
+  var rows=artists.map(function(a){
+    return '<tr><td><b>'+a+'</b></td>'+comps.map(function(cc){
+      var hit=valid.filter(function(p){return p.artist===a&&p.company===cc;});
+      var sum=0; hit.forEach(function(p){ sum+=share+p.fee; });
+      return '<td>'+(hit.length?hit.length+'单 · ¥'+fmt(sum):'—')+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+  return '<h3 class="mt12">表演者 × 公司 成本透视 <span class="sub">V3.1：同一词曲不同制作路径的成本差异</span></h3><div class="scroll-x"><table class="tbl" style="min-width:560px">'+head+rows+'</table></div>';
+}
+
+/* ============ V3.4 工作台案件化 + 流程轨顶置导航 ============ */
+var WB_STEP='1';
+var WB_OWNER='王小辉';
+var WB_OWNERS=['王小辉','张丽君','郭媛','all'];
+var WB_STEP_META={
+ '1':{label:'①采购申请', desc:'草稿采购申请单：确认后提交进入审批'},
+ '2':{label:'②采购审批', desc:'待负责人审批的采购申请单'},
+ '3':{label:'③创作合约', desc:'已批准采购申请单待创作合约模版录入'},
+ '4':{label:'④自动创建', desc:'系统节点：创作合约提交后自动创建词曲作品与内容（无手工操作，仅查看记录）'},
+ '5':{label:'⑤派生·草稿', desc:'待派生内容开始派生；表演者/成品单草稿重提'},
+ '6':{label:'⑥表演者审批', desc:'待审批表演者申请单（同批批量）'},
+ '7':{label:'⑦制作申请', desc:'已批准表演者申请待创建制作申请（顺序模式）'},
+ '8':{label:'⑧制作/合并审批', desc:'待审批制作/合并申请单（审批工作台）'},
+ '9':{label:'⑨成品运营', desc:'已形成成品待同步成品库；已入库待分发上线；已上线可召回下架'}
+};
+function scoped(cases){ if(WB_OWNER==='all') return cases; return cases.filter(function(c){return c.owner===WB_OWNER;}); }
+function buildCases(step){
+  var out=[];
+  if(step==='1') REQS.forEach(function(r){ if(r.status==='draft') out.push({id:r.id, type:'采购申请单·草稿', title:'《'+r.name+'》', owner:r.owner, status:badge(REQ_STATUS,'draft'), desc:'确认后提交，进入负责人审批（步骤②）', act:'提交', fn:'submitReqById(\''+r.id+'\')', archive:null}); });
+  if(step==='2') REQS.forEach(function(r){ if(r.status==='pending_approval') out.push({id:r.id, type:'采购审批', title:'《'+r.name+'》', owner:r.owner, status:badge(REQ_STATUS,'pending_approval'), desc:'负责人审批（1109 必审）', act:'去审批', fn:'showPage(\'apr\');setAprTab(\'purchase\')', archive:null}); });
+  if(step==='3') REQS.forEach(function(r){ if(r.status==='approved_pending_contract') out.push({id:r.id, type:'创作合约录入', title:'《'+r.name+'》', owner:r.owner, status:badge(REQ_STATUS,'approved_pending_contract'), desc:'选模版变体并录入空位，提交触发④自动创建', act:'录入创作合约', fn:'openCreationContract(\''+r.id+'\')', archive:null}); });
+  if(step==='4') CONTENTS.forEach(function(c){ out.push({id:c.id, type:'系统自动创建记录', title:'《'+c.name+'》', owner:c.owner, status:'<span class="status status-active">已创建</span>', desc:'词曲作品与内容已创建，创作合约 '+c.contract+' 已生效', act:'查看', fn:'openContent(\''+c.id+'\')', archive:null, readonly:true}); });
+  if(step==='5'){
+    CONTENTS.forEach(function(c){ if(contentStatus(c)==='pending_performer') out.push({id:c.id, type:'内容·待派生', title:'《'+c.name+'》', owner:c.owner, status:contentBadge(c), desc:'选择派生模式：顺序表演者申请 或 合并派生', act:'开始派生', fn:'openModePick(\''+c.id+'\')', archive:c.id}); });
+    PERF.forEach(function(p){ if(p.status==='draft'){ var c=CONTENTS.filter(function(x){return x.id===p.demo;})[0]; out.push({id:p.id, type:'表演者申请单·草稿', title:p.artist+'（'+p.demo+'）', owner:c?c.owner:'', status:badge(PERF_STATUS,'draft'), desc:'确认后重提，进入⑥表演者审批', act:'重提', fn:'resubmitPerf(\''+p.id+'\')', archive:p.demo}); } });
+    PROD.forEach(function(p){ if(p.status==='draft'){ var c=CONTENTS.filter(function(x){return x.id===p.demo;})[0]; out.push({id:p.id, type:'成品单·草稿('+(p.mode==='combo'?'合并':'顺序')+')', title:p.artist+'×'+p.company, owner:c?c.owner:'', status:badge(PROD_STATUS,'draft'), desc:'确认同公司合约快照预填后重提进入审批', act:'重提', fn:'resubmitProd(\''+p.id+'\')', archive:p.demo}); } });
+  }
+  if(step==='6') PERF.forEach(function(p){ if(p.status==='pending_approval'){ var c=CONTENTS.filter(function(x){return x.id===p.demo;})[0]; out.push({id:p.id, type:'表演者审批', title:p.artist+'（批次 '+p.batch+'）', owner:c?c.owner:'', status:badge(PERF_STATUS,'pending_approval'), desc:'支持同批批量结论', act:'去审批', fn:'showPage(\'apr\');setAprTab(\'performer\')', archive:p.demo}); } });
+  if(step==='7'){
+    CONTENTS.forEach(function(c){
+      if(contentStatus(c)!=='pending_performer'){
+        PERF.filter(function(p){return p.demo===c.id&&p.status==='approved';}).forEach(function(p){
+          var has=PROD.some(function(x){return x.perf===p.id&&x.status!=='terminated';});
+          if(!has) out.push({id:p.id, type:'制作申请创建', title:'《'+c.name+'》-'+p.artist, owner:c.owner, status:'<span class="status status-warn">待制作申请</span>', desc:'顺序模式：录入委托制作合约模版', act:'创建制作申请', fn:'openProdModal(\''+p.id+'\')', archive:c.id});
+        });
+      }
+    });
+  }
+  if(step==='8') PROD.forEach(function(p){ if(p.status==='pending_approval'){ var c=CONTENTS.filter(function(x){return x.id===p.demo;})[0]; out.push({id:p.id, type:(p.mode==='combo'?'合并审批':'制作审批'), title:p.artist+'×'+p.company+'·'+p.version, owner:c?c.owner:'', status:badge(PROD_STATUS,'pending_approval'), desc:'审批工作台：物料预览+权利校验', act:'去审批', fn:'openWorkbench(\''+p.id+'\')', archive:p.demo}); } });
+  if(step==='9') PROD.forEach(function(p){
+    var c=CONTENTS.filter(function(x){return x.id===p.demo;})[0];
+    if(p.status==='produced') out.push({id:p.id, type:'同步成品库', title:p.artist+'×'+p.company+'·'+p.version, owner:c?c.owner:'', status:badge(PROD_STATUS,'produced'), desc:'业务选择是否/何时同步到成品库（R43）；入库后方可分发', act:'同步成品库', fn:'syncProd(\''+p.id+'\')', archive:p.demo});
+    if(p.status==='synced') out.push({id:p.id, type:'分发上线', title:p.artist+'×'+p.company+'·'+p.version, owner:c?c.owner:'', status:badge(PROD_STATUS,'synced'), desc:'已同步成品库，可推入分发队列并上线（R44）', act:'分发上线', fn:'goOnline(\''+p.id+'\')', archive:p.demo});
+    if(p.status==='online') out.push({id:p.id, type:'召回下架', title:p.artist+'×'+p.company+'·'+p.version, owner:c?c.owner:'', status:badge(PROD_STATUS,'online'), desc:'已上线成品可召回下架（原因枚举）', act:'召回下架', fn:'goOffline(\''+p.id+'\')', archive:p.demo});
+  });
+  return scoped(out);
+}
+function setWbOwner(v){ WB_OWNER=v; renderWorkbench(); }
+function setWbStep(s){ WB_STEP=s; renderWorkbench(); }
+function railCurrentLabel(cid){
+  var c=CONTENTS.filter(function(x){return x.id===cid;})[0];
+  if(!c) return '—';
+  var st=contentStatus(c);
+  if(st==='pending_performer') return '⑤ 开始派生（表演者申请或合并派生）';
+  if(st==='pending_production') return '⑦ 制作申请创建与⑧审批';
+  if(st==='completed') return '⑨ 成品已形成·待同步成品库/已入库待上线';
+  return '—';
+}
+function openModePick(cid){
+  openModal('开始派生 — '+cid+'（P4 单一主行动：先选模式）',
+    '<div class="info-box blue">顺序模式：表演者申请（表演者合约）→ 表演者审批 → 制作申请 → 制作审批（2合约2审批）。<br>合并模式：演唱+制作一个步骤、一份合并合约、一道审批（⑤′→⑥′→⑨）。</div>'+
+    '<div class="flex" style="justify-content:center;gap:14px;margin-top:10px"><button class="btn primary" onclick="closeModal();openPerfModal(\''+cid+'\')">顺序：表演者申请（步骤⑤）</button>'+
+    '<button class="btn warn" onclick="closeModal();openComboModal(null,null,\''+cid+'\')">合并：演唱+制作一合约（⑤′）</button></div>',
+    '<button class="btn" onclick="closeModal()">取消</button>');
+}
+function stepOfContent(cid){
+  var c=CONTENTS.filter(function(x){return x.id===cid;})[0];
+  if(!c) return '5';
+  var st=contentStatus(c);
+  if(st==='pending_performer') return '5';
+  if(st==='pending_production') return '7';
+  return '9';
+}
+function stepOfReq(id){
+  var r=REQS.filter(function(x){return x.id===id;})[0];
+  if(!r) return '1';
+  if(r.status==='draft') return '1';
+  if(r.status==='pending_approval') return '2';
+  if(r.status==='approved_pending_contract') return '3';
+  return '4';
+}
+var WB_BACK='content';
+function gotoWorkbenchContent(cid){
+  var c=CONTENTS.filter(function(x){return x.id===cid;})[0];
+  WB_STEP=stepOfContent(cid);
+  if(c && WB_OWNER!==c.owner && WB_OWNER!=='all'){ WB_OWNER=c.owner; }
+  WB_BACK='content';
+  showPage('wb');
+  toast('已定位步骤 '+WB_STEP_META[WB_STEP].label+' 案件列表（视角：'+(WB_OWNER==='all'?'全部':WB_OWNER)+'；办理后点返回档案回来源页）','ok');
+}
+function gotoWorkbenchReq(id){
+  var r=REQS.filter(function(x){return x.id===id;})[0];
+  WB_STEP=stepOfReq(id);
+  if(r && WB_OWNER!==r.owner && WB_OWNER!=='all'){ WB_OWNER=r.owner; }
+  WB_BACK='req';
+  showPage('wb');
+  toast('已定位步骤 '+WB_STEP_META[WB_STEP].label+' 案件列表（视角：'+(WB_OWNER==='all'?'全部':WB_OWNER)+'；办理后点返回档案回来源页）','ok');
+}
+function backFromWb(){ showPage(WB_BACK||'content'); toast('已返回档案（行级办理入口仍在）','ok'); }
+function renderWorkbench(){
+  if(buildCases(WB_STEP).length===0){
+    var first=['1','2','3','5','6','7','8','9'].filter(function(s){return buildCases(s).length>0;})[0];
+    if(first) WB_STEP=first;
+  }
+  var sel=$('wbOwner');
+  if(sel){ sel.innerHTML=WB_OWNERS.map(function(o){ return '<option value="'+o+'" '+(WB_OWNER===o?'selected':'')+'>'+(o==='all'?'负责人·全部':o+'（本人视角）')+'</option>'; }).join(''); }
+  var nav='';
+  ['1','2','3','4','5','6','7','8','9'].forEach(function(s){
+    var n=buildCases(s).length;
+    var cls = WB_STEP===s ? 'step9 on' : 'step9';
+    nav+='<span class="'+cls+'" style="cursor:pointer" onclick="setWbStep(\''+s+'\')">'+WB_STEP_META[s].label+(n?'('+n+')':'')+'</span>';
+  });
+  $('wbRailNav').innerHTML=nav;
+  var cases=buildCases(WB_STEP);
+  var meta=WB_STEP_META[WB_STEP];
+  var body='<div class="card"><h3>'+meta.label+' · 步骤操作页 <span class="sub">'+meta.desc+' · 当前视角：'+(WB_OWNER==='all'?'全部':WB_OWNER)+'</span></h3>';
+  if(WB_STEP==='4'){ body+='<div class="info-box green" style="margin-bottom:8px">系统自动节点（R36）：无手工操作；以下为最近自动创建记录（只读查看）。</div>'; }
+  if(cases.length){
+    body+='<div class="scroll-x"><table class="tbl"><tr><th>案件</th><th>类型</th><th>负责人</th><th>当前状态</th><th>说明</th><th>操作（单一主CTA）</th></tr>'+
+      cases.map(function(c){ return '<tr><td><b>'+c.title+'</b><br><span class="muted">'+c.id+'</span></td><td><span class="tag tag-blue">'+c.type+'</span></td><td><span class="tag tag-purple">'+c.owner+'</span></td><td>'+c.status+'</td><td class="muted">'+c.desc+'</td>'+
+        '<td><button class="btn '+(c.readonly?'':'primary ')+'sm" onclick="'+c.fn+'">'+c.act+'</button>'+(c.archive?' <span class="link" onclick="openContent(\''+c.archive+'\')">查看</span>':'')+'</td></tr>'; }).join('')+
+      '</table></div>';
+  } else {
+    body+='<div class="muted">当前视角下该步骤暂无案件'+(WB_OWNER==='all'?'':'（可切换视角或等待案件流入）')+'</div>';
+  }
+  body+='</div>';
+  $('wbStepBody').innerHTML=body;
+  refreshBadge();
+}
+
+/* ============ V3.2 合并模式（演唱+制作一合约一审批） ============ */
+function openComboModal(artist, company, cid){
+  cid=cid||CURRENT_CONTENT;
+  if(artist && PERF.some(function(p){return p.demo===cid&&p.artist===artist&&p.status!=='terminated';})){ toast('R26 模式锁定：该表演者已有顺序表演者申请单，合并模式阻断（终止原单后解锁）','err'); return; }
+  var comps=Object.keys(COMPANIES);
+  if(company && comps.indexOf(company)<0) comps.push(company);
+  var body='<div class="info-box purple">合并模式（V3.2 ⑤′）：演唱+制作<b>一个步骤、一份合并合约、一道审批</b>（⑥′），表演者权+录音制作者权同源同时获取；适用同一公司包演唱+制作或打包谈定场景。</div>'+
+    '<div class="form-row"><label>表演者 *</label><select id="cbArtist">'+(artist?'<option>'+artist+'</option>':'')+ARTISTS.filter(function(a){return a!==artist;}).map(function(a){return '<option>'+a+'</option>';}).join('')+'</select></div>'+
+    '<div class="form-row"><label>制作公司 *</label><select id="cbCompany" onchange="cbProducerReset()">'+comps.map(function(c2){return '<option '+(company===c2?'selected':'')+'>'+c2+'</option>';}).join('')+'</select></div>'+
+    '<div class="form-row"><label>制作人 *</label><select id="cbProducer"></select></div>'+
+    '<div class="form-row"><label>专辑归属 *（Q10）</label><select id="cbAlbum">'+ALBUMS.map(function(a){return '<option>'+a+'</option>';}).join('')+'</select></div>'+
+    '<div class="form-row"><label>版本类型 *</label><select id="cbVersion"><option>原版</option><option>国语</option><option>粤语</option><option>Remix</option><option>Live</option><option>伴奏</option></select></div>'+
+    '<fieldset class="grp"><legend>演唱-制作合并合约模版录入（2+4 合并空位）</legend>'+
+    '<div class="form-grid">'+
+    '<div class="form-row"><label>首数 原/伴</label><input id="cbCount" value="1 / 1"></div>'+
+    '<div class="form-row"><label>音频规格 *</label><select id="cbSpec"><option>44.1K 16bit</option><option>48K 24bit</option></select></div>'+
+    '<div class="form-row"><label>合作期间 *</label><input id="cbPeriod" value="2026-11-20 ~ 2027-03-20"></div>'+
+    '<div class="form-row"><label>交付单元</label><input id="cbUnit" value="每1月≥1首"></div>'+
+    '<div class="form-row"><label>含税总价 *</label><input id="cbTotal" type="number" value="30000"></div>'+
+    '<div class="form-row"><label>预付款比例%</label><input id="cbPre" type="number" value="30"></div>'+
+    '<div class="form-row"><label>版税分成年限</label><input id="cbYears" type="number" value="3"></div>'+
+    '<div class="form-row"><label>分成 甲:乙</label><input id="cbRatio" value="70:30"></div></div>'+
+    '<div class="form-row"><label>制作工序 *</label><input id="cbProcess" value="编曲、配器、录音、修音、混音、母带合成"></div>'+
+    '<div class="muted" style="font-size:11px">固定条款（两约并集 R29）：录音制品/母盘永久归甲方；甲方永久享有著作权+邻接权（表演者权+录音制作者权）；表演者仅享署名权；全球/永久。</div></fieldset>'+
+    '<fieldset class="grp"><legend>物料上传</legend>'+
+    '<div class="check-line"><input type="checkbox" id="cbMatAudio" checked> 成品音源（wav）</div>'+
+    '<div class="check-line"><input type="checkbox" id="cbMatLyric" checked> 成品歌词（lrc）</div></fieldset>'+
+    '<div class="form-row"><label>合并费用 *</label><input id="cbFee" type="number" value="30000"></div>';
+  openModal('合并派生（⑤′ 演唱+制作·一合约）— '+cid, body,
+    '<button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="submitCombo(\''+cid+'\')">提交（进入⑥′合并审批）</button>');
+  cbProducerReset();
+}
+function cbProducerReset(){
+  var comp=$('cbCompany').value;
+  $('cbProducer').innerHTML=(COMPANIES[comp]||['制作人']).map(function(p){return '<option>'+p+'</option>';}).join('');
+}
+function submitCombo(cid){
+  var artist=$('cbArtist').value, company=$('cbCompany').value, version=$('cbVersion').value;
+  if(PERF.some(function(p){return p.demo===cid&&p.artist===artist&&p.status!=='terminated';})){ toast('R26 模式锁定：该表演者已有顺序表演者申请单，合并模式阻断','err'); return; }
+  var dup=PROD.filter(function(x){return x.demo===cid&&x.artist===artist&&x.company===company&&x.version===version&&x.status!=='terminated';});
+  if(dup.length){ toast('同表演者+同公司+同版本不可重复建单（R8′）','err'); return; }
+  PROD.push({id:cid+'-P'+(PROD.filter(function(x){return x.demo===cid;}).length+1), demo:cid, perf:null, mode:'combo', artist:artist,
+    company:company, producer:$('cbProducer').value, album:$('cbAlbum').value, version:version,
+    fee:parseFloat($('cbFee').value||0), main:1, acc:0, spec:$('cbSpec').value, process:$('cbProcess').value,
+    contract:nid('CTR-CP-2026-'), status:'pending_approval', mats:{audio:$('cbMatAudio').checked?1:0, lyric:$('cbMatLyric').checked?1:0}});
+  log('合并派生提交(⑤′)', cid+' '+artist+'×'+company+'（一合约一审批）');
+  closeModal();
+  toast('合并成品单已提交，进入⑥′演唱-制作合并审批（单闸口）','ok');
+  renderWorkbench();
+}
+
+/* ============ 合约模版库 ============ */
+var TPLS = {
+  creation: {
+    name:'委托创作合同', file:'3、词曲-（创作合同）.docx', gen:'创作合约',
+    variants:['词','曲','词&曲'],
+    fields:{
+      '词':[['乙方（创作方）','乙方名称/信用代码/地址/联系人/电话','✅'],
+           ['作品信息','作品名称、词作者(本名+证件号)、词版权比例(默认100%)、创作完成时间','✅'],
+           ['委托事项','标的首数(默认1)、合作期间起止、交付方式(邮箱)','✅'],
+           ['费用','含税总价/不含税/增值税额/税率/预付款比例与金额/余款','✅'],
+           ['收款账户','户名(=乙方)/开户行/账号','✅'],
+           ['附件','《词曲作者确认书》、明细表、《歌曲交接验收单》、词谱曲谱、作者身份证复印件','⭕ 可后补']],
+      '曲':[['乙方（创作方）','乙方名称/信用代码/地址/联系人/电话','✅'],
+           ['作品信息','作品名称、曲作者(本名+证件号)、曲版权比例(默认100%)、创作完成时间','✅'],
+           ['委托事项','标的首数(默认1)、合作期间起止、交付方式(邮箱)','✅'],
+           ['费用','含税总价/不含税/增值税额/税率/预付款比例与金额/余款','✅'],
+           ['收款账户','户名(=乙方)/开户行/账号','✅'],
+           ['附件','《词曲作者确认书》、明细表、《歌曲交接验收单》、曲谱、作者身份证复印件','⭕ 可后补']],
+      '词&曲':[['乙方（创作方）','乙方名称/信用代码/地址/联系人/电话','✅'],
+           ['作品信息','作品名称、词作者+曲作者(本名+证件号)、词/曲版权比例(默认100%)、创作完成时间','✅'],
+           ['委托事项','标的首数(默认1)、合作期间起止、交付方式(邮箱)','✅'],
+           ['费用','含税总价/不含税/增值税额/税率/预付款比例与金额/余款','✅'],
+           ['收款账户','户名(=乙方)/开户行/账号','✅'],
+           ['附件','《词曲作者确认书》、明细表、《歌曲交接验收单》、词谱曲谱、作者身份证复印件','⭕ 可后补']]
+    },
+    fixed:['著作权（署名权除外）自词曲作品产生之日起全球永久单独归甲方所有','权利范围：全球；权利期限：永久','乙方不得自行或授权第三方使用/转让/许可标的作品','验收：甲方7个工作日内审听验收，瑕疵由乙方修改']
+  },
+  performance: {
+    name:'委托演唱合同', file:'2、表演者合同.docx', gen:'表演者合约', variants:[],
+    fields:{
+      '':[['乙方','乙方名称(经纪方/制作公司)/信用代码/地址/联系人/电话','✅'],
+         ['指定表演者','表演者本名+艺名、身份证号码（=申请单所选艺人）','✅'],
+         ['委托事项','标的首数(原曲/伴奏)、合作期间起止、交付单元(每N月≥M首)、制作工序(录音等)','✅'],
+         ['费用与分成','含税总价/不含税/增值税额/税率/预付款比例与金额/余款、版税收益分成年限、分成比例甲:乙(合计100%)','✅'],
+         ['权利','表演者权及录音制作者权比例(默认100%)、首次制作完成时间','✅'],
+         ['收款账户','户名(=乙方)/开户行/账号','✅'],
+         ['附件','《录音/录像制作者确认书》《表演者权利声明书》(按人生成)、明细表、《歌曲交接验收单》、乙方营业执照','⭕ 可后补']]
+    },
+    fixed:['录音制品/母盘/样带自产生之日起永久归甲方，甲方永久享有著作权+邻接权（表演者权+录音制作者权）','全球、永久；表演者仅享署名权','乙方保证表演者权自产生之日起归属甲方；甲方对表演者有异议可要求替换','宣传配合：抖音3条预热视频等自媒体平台']
+  },
+  production: {
+    name:'委托制作合同（后期制作）', file:'4、委托制作合同-（后期制作）.docx', gen:'制作合约', variants:[],
+    fields:{
+      '':[['乙方','制作公司名称/信用代码/地址/联系人/电话（须=制作申请单制作公司）','✅'],
+         ['制作人','制作人（级联：该公司人员）','✅'],
+         ['委托事项','标的首数(原曲/伴奏)、制作工序(编曲/配器/录音/修音/混音/音效设计/母带合成 多选)、合作期间起止、交付单元','✅'],
+         ['音频规格','44.1K 16bit 或 48K 24bit WAV','✅'],
+         ['费用','含税总价/不含税/增值税额/税率/预付款比例与金额/余款','✅'],
+         ['权利','录音制作者权比例(默认100%)、首次制作完成时间','✅'],
+         ['收款账户','户名(=乙方)/开户行/账号','✅'],
+         ['附件','《录音/录像制作者确认书》、明细表、《歌曲交接验收单》、乙方营业执照','⭕ 可后补']]
+    },
+    fixed:['录音制品/母盘/样带自产生之日起永久归甲方，甲方永久享有著作权+邻接权','全球、永久','乙方不得自行或授权第三方使用甲方词曲','多轨交付须 44.1K 16bit 或 48K 24bit WAV']
+  },
+  combo: {
+    name:'委托演唱-制作合同（合并模版）', file:'2+4 合并（正式 docx 待提供 N9）', gen:'演唱-制作合并合约', variants:[],
+    fields:{
+      '':[['乙方（承包方）','名称/信用代码/地址/联系人/电话（=制作公司，兼表演组织方）','✅'],
+         ['指定表演者','本名+艺名、身份证号码（=合并申请单所选表演者；声明书按人生成）','✅'],
+         ['委托事项','标的歌曲首数(原曲/伴奏)、制作工序(编曲/配器/录音/修音/混音/音效设计/母带合成)、合作期间起止、交付单元','✅'],
+         ['音频规格','44.1K 16bit 或 48K 24bit WAV','✅'],
+         ['费用与分成','含税总价/不含税/增值税额/税率/预付款比例与金额/余款、版税收益分成年限、分成比例甲:乙','✅'],
+         ['权利','表演者权及录音制作者权比例(默认100%)、首次制作完成时间','✅'],
+         ['收款账户','户名(=乙方)/开户行/账号','✅'],
+         ['附件','《录音/录像制作者确认书》《表演者权利声明书》、明细表、《歌曲交接验收单》、乙方营业执照','⭕ 可后补']]
+    },
+    fixed:['录音制品/母盘/样带自产生之日起永久归甲方，甲方永久享有著作权+邻接权（表演者权+录音制作者权）','全球、永久；表演者仅享署名权','乙方不得自行或授权第三方使用甲方词曲','多轨交付须 44.1K 16bit 或 48K 24bit WAV']
+  }
+};
+function setTplTab(t){ TPL_TAB=t; renderTpl(); }
+function setTplVariant(v){ TPL_VARIANT=v; renderTpl(); }
+function renderTpl(){
+  var ts=document.querySelectorAll('#tplTabs .tab');
+  for(var i=0;i<ts.length;i++){ ts[i].classList.toggle('active', ts[i].getAttribute('data-t')===TPL_TAB); }
+  var t=TPLS[TPL_TAB];
+  var vhtml='';
+  if(t.variants.length){
+    vhtml='模版变体：'+t.variants.map(function(v){ return '<span class="tag '+(TPL_VARIANT===v?'tag-blue':'tag-gray')+'" style="cursor:pointer;padding:4px 12px" onclick="setTplVariant(\''+v+'\')">'+v+'</span>'; }).join(' ');
+  }
+  $('tplVariant').innerHTML=vhtml;
+  var key = t.variants.length?TPL_VARIANT:'';
+  var rows=t.fields[key].map(function(f){ return '<tr><td><b>'+f[0]+'</b></td><td>'+f[1]+'</td><td>'+f[2]+'</td></tr>'; }).join('');
+  $('tplBody').innerHTML =
+    '<div class="card"><h3>'+t.name+' <span class="sub">源文件：'+t.file+' · 生成合约类型：<span class="tag tag-green">'+t.gen+'</span> · 版本 v1.2 · 启用中</span></h3>'+
+    '<div class="scroll-x"><table class="tbl" style="min-width:640px"><tr><th style="width:140px">分组</th><th>空位字段（系统录入项）</th><th style="width:90px">必填</th></tr>'+rows+'</table></div></div>'+
+    '<div class="card"><h3>固定条款（系统内置 · 不可业务修改 · R19）</h3><ul style="padding-left:18px;font-size:12px;line-height:1.9">'+t.fixed.map(function(f){return '<li>'+f+'</li>';}).join('')+'</ul>'+
+    '<div class="info-box orange mt8" style="margin-bottom:0">模版升级仅影响新录入；历史合约实例保存录入快照（R18）。</div></div>';
+}
+
+/* ============ 通用弹窗 ============ */
+function openModal(title, body, foot){
+  $('modalTitle').textContent=title;
+  $('modalBody').innerHTML=body;
+  $('modalFoot').innerHTML=foot;
+  $('modalMask').classList.add('open');
+}
+function closeModal(){ $('modalMask').classList.remove('open'); }
+
+/* ============ 初始化 ============ */
+showPage('content');
+renderApr();
+renderReq();
+refreshBadge();
+</script>
+</body>
+</html>
